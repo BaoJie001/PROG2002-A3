@@ -1,0 +1,155 @@
+@if (loading()) {
+  <p class="state state--loading">Loading event…</p>
+}
+
+@if (error()) {
+  <div class="alert alert--error">
+    <p>{{ error() }}</p>
+    <a class="btn btn--small" routerLink="/">Back to all events</a>
+  </div>
+}
+
+@if (event(); as event) {
+  <nav class="crumbs">
+    <a routerLink="/">All events</a> <span>›</span> <span>{{ event.category.name }}</span>
+  </nav>
+
+  <!-- Header -------------------------------------------------------------- -->
+  <header class="detail__header"
+          [style.background-image]="'url(' + event.category.image_url + ')'">
+    <div class="detail__header-inner">
+      <span class="tag">{{ event.category.icon }} {{ event.category.name }}</span>
+      <h1 class="detail__title">{{ event.name }}</h1>
+      <p class="detail__organiser">
+        {{ event.organisation.icon }} {{ event.organisation.name }}
+      </p>
+    </div>
+  </header>
+
+  <div class="detail__layout">
+    <!-- Main column ------------------------------------------------------- -->
+    <div class="detail__main">
+      <p class="detail__summary">{{ event.summary }}</p>
+      <p class="detail__description">{{ event.description }}</p>
+
+      <!--
+        Registration list - the feature Assessment 3 adds to this page.
+        Already sorted by the API: newest purchase first.
+      -->
+      <section class="section">
+        <div class="section__head">
+          <h2>Who is going</h2>
+          <span class="pill">{{ event.registrations.length }}</span>
+        </div>
+
+        @if (event.registrations.length === 0) {
+          <p class="state">
+            Nobody has registered yet — you would be the first.
+          </p>
+        } @else {
+          <ul class="attendees">
+            @for (registration of event.registrations; track registration.registration_id) {
+              <li class="attendees__row">
+                <span class="attendees__name">{{ registration.display_name }}</span>
+                <span class="attendees__tickets">{{ ticketLabel(registration.tickets) }}</span>
+                <span class="attendees__date">
+                  booked {{ formatDate(registration.registration_date) }}
+                </span>
+              </li>
+            }
+          </ul>
+          <p class="detail__note">
+            Sorted by the date the tickets were bought, most recent first.
+          </p>
+        }
+      </section>
+    </div>
+
+    <!-- Sidebar ----------------------------------------------------------- -->
+    <aside class="detail__side">
+      <div class="panel">
+        <dl class="facts">
+          <dt>Date</dt>
+          <dd>{{ formatDate(event.event_date) }}</dd>
+
+          <dt>Time</dt>
+          <dd>
+            {{ formatTime(event.start_time) }}
+            @if (event.end_time) { – {{ formatTime(event.end_time) }} }
+          </dd>
+
+          <dt>Venue</dt>
+          <dd>{{ event.location }}</dd>
+
+          <dt>Tickets</dt>
+          <dd>{{ formatMoney(event.ticket_price) }}</dd>
+        </dl>
+
+        <div class="progress">
+          <div class="progress__bar" [style.width.%]="event.progress_percentage"></div>
+        </div>
+        <p class="panel__progress">
+          {{ formatMoney(event.raised_amount) }} of {{ formatMoney(event.goal_amount) }} raised
+          ({{ event.progress_percentage }}%)
+        </p>
+
+        <!--
+          Register button. Hidden once the event has finished - you cannot buy
+          a ticket for something that already happened.
+        -->
+        @if (event.is_past) {
+          <p class="panel__closed">This event has finished.</p>
+        } @else {
+          <a class="btn btn--primary btn--block"
+             [routerLink]="['/register']" [queryParams]="{ eventId: event.event_id }">
+            Register for this event
+          </a>
+        }
+      </div>
+
+      <!--
+        Weather: optional extra. It can never break the page, but saying
+        nothing at all is confusing - a visitor who sees no panel cannot tell
+        whether the forecast is missing, still loading, or simply not available
+        for a date that far away. So when there is no forecast we say why.
+      -->
+      @if (forecast(); as forecast) {
+        @if (!forecast.available) {
+          <div class="panel panel--weather">
+            <h3 class="panel__title">Expected weather</h3>
+            <p class="panel__foot">
+              No forecast is published for {{ formatDate(forecast.event_date) }} yet.
+              Open-Meteo only covers the next 16 days, so check back closer to
+              the day.
+            </p>
+          </div>
+        } @else if (forecast.weather) {
+          <div class="panel panel--weather">
+            <h3 class="panel__title">Expected weather</h3>
+            <p class="weather">
+              <span class="weather__icon">{{ forecast.weather.icon }}</span>
+              <span class="weather__desc">{{ forecast.weather.description }}</span>
+            </p>
+            <p class="weather__temps">
+              {{ forecast.weather.temperature_max }}°C /
+              {{ forecast.weather.temperature_min }}°C
+            </p>
+            <p class="panel__foot">
+              Forecast for {{ formatDate(forecast.event_date) }} · {{ forecast.source }}
+            </p>
+          </div>
+        }
+      }
+
+      <div class="panel">
+        <h3 class="panel__title">Run by</h3>
+        <p class="panel__org">{{ event.organisation.name }}</p>
+        <p class="panel__mission">{{ event.organisation.mission }}</p>
+        <ul class="contact">
+          <li>✉️ {{ event.organisation.contact_email }}</li>
+          <li>📞 {{ event.organisation.contact_phone }}</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+}

@@ -1,0 +1,145 @@
+<h1 class="page-title">Register for an event</h1>
+
+@if (loadingEvent()) {
+  <p class="state state--loading">Loading the event…</p>
+}
+
+@if (error() && !event()) {
+  <div class="alert alert--error">
+    <p>{{ error() }}</p>
+    <a class="btn btn--small" routerLink="/">Choose an event</a>
+  </div>
+}
+
+@if (event(); as event) {
+  <!-- Success: replace the form with the confirmation. -->
+  @if (confirmation()) {
+    <div class="alert alert--success">
+      <h2 class="confirm__title">You are registered</h2>
+      <p>{{ confirmation() }}</p>
+
+      @if (registration(); as registration) {
+        <ul class="confirm__list">
+          <li><strong>Name:</strong> {{ registration.first_name }} {{ registration.last_name }}</li>
+          <li><strong>Tickets:</strong> {{ registration.tickets }}</li>
+          <li><strong>Booked on:</strong> {{ formatDate(registration.registration_date) }}</li>
+          <li><strong>Confirmation sent to:</strong> {{ registration.email }}</li>
+        </ul>
+      }
+
+      <div class="confirm__actions">
+        <a class="btn btn--primary"
+           [routerLink]="['/event', event.event_id]">Back to the event</a>
+        <a class="btn btn--ghost" routerLink="/">Browse more events</a>
+      </div>
+    </div>
+  } @else {
+    <div class="register__layout">
+      <!-- What you are booking ------------------------------------------- -->
+      <aside class="panel register__event">
+        <span class="tag">{{ event.category.icon }} {{ event.category.name }}</span>
+        <h2 class="register__event-title">{{ event.name }}</h2>
+        <dl class="facts">
+          <dt>Date</dt>
+          <dd>{{ formatDate(event.event_date) }}</dd>
+          <dt>Time</dt>
+          <dd>{{ formatTime(event.start_time) }}</dd>
+          <dt>Venue</dt>
+          <dd>{{ event.location }}</dd>
+          <dt>Price</dt>
+          <dd>{{ formatMoney(event.ticket_price) }} per ticket</dd>
+        </dl>
+        <p class="register__organiser">
+          {{ event.organisation.icon }} {{ event.organisation.name }}
+        </p>
+      </aside>
+
+      <!-- The form -------------------------------------------------------- -->
+      <form class="panel register__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <h2 class="panel__title">Your details</h2>
+
+        <div class="row">
+          <div class="field">
+            <label for="first_name">First name</label>
+            <input id="first_name" type="text" formControlName="first_name" />
+            @if (form.controls.first_name.touched && form.controls.first_name.invalid) {
+              <p class="field__error">First name is required.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label for="last_name">Last name</label>
+            <input id="last_name" type="text" formControlName="last_name" />
+            @if (form.controls.last_name.touched && form.controls.last_name.invalid) {
+              <p class="field__error">Last name is required.</p>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" placeholder="you@example.com" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="field__error">A valid email address is required.</p>
+          }
+          <p class="field__hint">
+            One registration per email address per event.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="phone">Contact phone</label>
+          <input id="phone" type="text" formControlName="phone" placeholder="0400 000 000" />
+          @if (form.controls.phone.touched && form.controls.phone.invalid) {
+            <p class="field__error">Enter a phone number of 8-15 digits.</p>
+          }
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="tickets">Number of tickets</label>
+            <input id="tickets" type="number" min="1" max="50" formControlName="tickets" />
+            @if (ticketsControl.touched && ticketsControl.invalid) {
+              <p class="field__error">Choose between 1 and 50 tickets.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label for="registration_date">Date of registration</label>
+            <input id="registration_date" type="date" [max]="bookingDateMax()"
+                   formControlName="registration_date" />
+            @if (form.controls.registration_date.touched && form.controls.registration_date.invalid) {
+              <p class="field__error">A registration date is required.</p>
+            }
+            <p class="field__hint">
+              Cannot be in the future, and cannot be later than
+              {{ formatDate(bookingDateMax()) }}.
+            </p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Notes (optional)</label>
+          <input id="notes" type="text" formControlName="notes"
+                 placeholder="Dietary needs, accessibility, who you are coming with…" />
+        </div>
+
+        <p class="register__total">
+          Total: <strong>{{ formatMoney(total()) }}</strong>
+        </p>
+
+        @if (error()) {
+          <div class="alert alert--error">{{ error() }}</div>
+        }
+
+        <button class="btn btn--primary btn--block" type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Submitting…' : 'Complete registration' }}
+        </button>
+
+        <p class="register__cancel">
+          Changed your mind? <a [routerLink]="['/event', event.event_id]">Back to the event</a>
+        </p>
+      </form>
+    </div>
+  }
+}
