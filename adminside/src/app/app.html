@@ -1,0 +1,39 @@
+<header class="site-header site-header--admin">
+  <div class="container site-header__inner">
+    <a class="brand" routerLink="/events" (click)="closeMenu()">
+      <span class="brand__mark">🛠️</span>
+      <span class="brand__name">{{ siteName }}</span>
+    </a>
+
+    <button class="nav-toggle" type="button"
+            [attr.aria-expanded]="menuOpen()"
+            aria-label="Toggle navigation"
+            (click)="toggleMenu()">☰</button>
+
+    <nav class="nav" [class.nav--open]="menuOpen()">
+      <a routerLink="/events" routerLinkActive="nav__link--active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">All events</a>
+      <a routerLink="/events/new" routerLinkActive="nav__link--active" (click)="closeMenu()">
+        New event
+      </a>
+      <a class="nav__link--public" [href]="publicUrl">View public site ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container site-main">
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>
+      Staff administration for Giving Coast. Changes made here are visible on
+      the public site immediately — the public site reads the same database
+      through the same API.
+    </p>
+    <p class="site-footer__small">
+      PROG2002 Web Development II · Assessment 3 · © {{ year }}
+    </p>
+  </div>
+</footer>

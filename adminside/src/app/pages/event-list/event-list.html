@@ -1,0 +1,107 @@
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Events</h1>
+    <p class="page-lead">
+      Every event in the database, including suspended and finished ones.
+      Use Edit to change the details, or Delete to remove an event that nobody
+      has registered for.
+    </p>
+  </div>
+  <a class="btn btn--primary" routerLink="/events/new">+ New event</a>
+</div>
+
+@if (notice()) {
+  <div class="alert alert--success">{{ notice() }}</div>
+}
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="state state--loading">Loading events…</p>
+} @else {
+  <!--
+    Status filter. The counts come from the same list the table renders, so a
+    button can never claim "3" next to an empty table.
+  -->
+  <div class="filters" role="group" aria-label="Filter events by status">
+    @for (option of filters; track option.key) {
+      <button type="button" class="filters__btn"
+              [class.filters__btn--on]="filter() === option.key"
+              (click)="filter.set(option.key)">
+        {{ option.label }}
+        <span class="filters__count">{{ counts()[option.key] }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Event</th>
+          <th>Date</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Ticket</th>
+          <th>Registrations</th>
+          <th class="table__actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (event of visibleEvents(); track event.event_id) {
+          <tr>
+            <td class="table__id">{{ event.event_id }}</td>
+
+            <td>
+              <span class="table__name">{{ event.name }}</span>
+              <span class="table__sub">
+                {{ event.category.icon }} {{ event.category.name }} ·
+                {{ event.organisation.name }}
+              </span>
+            </td>
+
+            <td>{{ formatDate(event.event_date) }}</td>
+
+            <td>{{ event.suburb || event.city }}</td>
+
+            <td><span [class]="statusClass(event)">{{ statusLabel(event) }}</span></td>
+
+            <td>{{ formatMoney(event.ticket_price) }}</td>
+
+            <td>
+              @if (event.registration_count > 0) {
+                {{ event.registration_count }} booking(s) ·
+                {{ event.tickets_sold }} ticket(s)
+              } @else {
+                <span class="table__muted">none</span>
+              }
+            </td>
+
+            <td class="table__actions">
+              <a class="btn btn--small btn--ghost"
+                 [routerLink]="['/events', event.event_id, 'edit']">Edit</a>
+              <button class="btn btn--small btn--danger" type="button"
+                      [disabled]="deletingId() === event.event_id"
+                      (click)="remove(event)">
+                {{ deletingId() === event.event_id ? 'Deleting…' : 'Delete' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="table__empty">
+              @if (filter() === 'all') {
+                No events in the database yet — create the first one.
+              } @else {
+                No {{ filter() }} events. Switch back to All to see the rest.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

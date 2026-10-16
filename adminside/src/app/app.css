@@ -1,0 +1,117 @@
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* The admin shell is tinted differently so staff can always tell which site
+   they are on - a small thing that prevents editing the wrong copy. */
+.site-header--admin {
+  border-bottom: 3px solid var(--accent);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.nav a:hover {
+  color: var(--ink);
+}
+
+.nav__link--active {
+  color: var(--accent-strong) !important;
+  border-bottom-color: var(--accent-strong) !important;
+  font-weight: 600;
+}
+
+.nav__link--public {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px !important;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+  }
+
+  .nav--open {
+    display: flex;
+  }
+}
+
+.site-main {
+  min-height: 60vh;
+  padding-top: 24px;
+  padding-bottom: 40px;
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.site-footer p {
+  margin: 0 0 6px;
+  max-width: 70ch;
+}
+
+.site-footer__small {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}

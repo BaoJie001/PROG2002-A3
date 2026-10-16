@@ -1,0 +1,22 @@
+<h1 class="page-title">New event</h1>
+<p class="page-lead">
+  Fields marked * are required. The event appears on the public site as soon as
+  it is saved with the status “Active”.
+</p>
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="state state--loading">Loading form…</p>
+} @else {
+  <div class="panel">
+    <app-event-form
+      [categories]="categories()"
+      [organisations]="organisations()"
+      [submitting]="submitting()"
+      submitLabel="Create event"
+      (save)="save($event)" />
+  </div>
+}

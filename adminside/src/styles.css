@@ -1,0 +1,374 @@
+/* ===========================================================================
+   styles.css - global styles for the client-side site.
+
+   Hand-written CSS: no Bootstrap, Tailwind or any other framework - the unit
+   forbids them, and it also keeps the deployed bundle tiny.
+
+   Everything reusable (buttons, fields, panels, alerts) is defined here once,
+   so the per-component stylesheets only hold real layout differences.
+   =========================================================================== */
+
+:root {
+  --ink: #16293d;
+  --ink-soft: #5a7186;
+  --surface: #ffffff;
+  --surface-alt: #f5f8fb;
+  --page: #f0f4f8;
+  --border: #dde5ec;
+  --accent: #2f7d76;
+  --accent-strong: #1f5f5a;
+  --accent-soft: #d9ece8;
+  --warning: #8a5a00;
+  --warning-soft: #fff4d6;
+  --error: #a12d2d;
+  --error-soft: #fdeaea;
+  --success: #1c6b3f;
+  --success-soft: #e4f5ea;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+a {
+  color: var(--accent-strong);
+}
+
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* --- text helpers -------------------------------------------------------- */
+.page-title {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+}
+
+.page-lead {
+  margin: 0 0 20px;
+  color: var(--ink-soft);
+  max-width: 65ch;
+}
+
+.state {
+  padding: 18px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+}
+
+.state--loading {
+  text-align: center;
+}
+
+.pill {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* --- buttons ------------------------------------------------------------- */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn--primary:hover {
+  background: var(--accent-strong);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+.btn--ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.btn--small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.btn--block {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- forms --------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field__error {
+  margin: 0;
+  color: var(--error);
+  font-size: 0.8rem;
+}
+
+.field__hint {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- panels -------------------------------------------------------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.panel__title {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.panel__foot,
+.panel__progress {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.panel__org {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.panel__mission {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.panel__closed {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.panel--weather {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--accent-soft) 100%);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 6px 12px;
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+}
+
+.facts dt {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.contact {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+/* --- alerts -------------------------------------------------------------- */
+.alert {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.alert p {
+  margin: 0 0 8px;
+}
+
+.alert p:last-child {
+  margin-bottom: 0;
+}
+
+.alert--error {
+  background: var(--error-soft);
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+.alert--warning {
+  background: var(--warning-soft);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+}
+
+.alert--success {
+  background: var(--success-soft);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+/* --- progress bar -------------------------------------------------------- */
+.progress {
+  height: 8px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* --- weather ------------------------------------------------------------- */
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.weather__icon {
+  font-size: 1.6rem;
+}
+
+.weather__desc {
+  font-weight: 600;
+}
+
+.weather__temps {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* --- admin only ---------------------------------------------------------- */
+/* Destructive action, so it gets its own colour rather than the accent green. */
+.btn--danger {
+  background: transparent;
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.btn--danger:hover {
+  background: var(--error);
+  color: #fff;
+}
+
+.section__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section__head h2 {
+  margin: 0;
+}

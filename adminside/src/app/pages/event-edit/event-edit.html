@@ -1,0 +1,85 @@
+@if (loading()) {
+  <p class="state state--loading">Loading event…</p>
+}
+
+@if (error() && !event()) {
+  <div class="alert alert--error">
+    <p>{{ error() }}</p>
+    <a class="btn btn--small" routerLink="/events">Back to the list</a>
+  </div>
+}
+
+@if (event(); as event) {
+  <nav class="crumbs">
+    <a routerLink="/events">Events</a> <span>›</span>
+    <span>#{{ event.event_id }} {{ event.name }}</span>
+  </nav>
+
+  <h1 class="page-title">Edit event</h1>
+  <p class="page-lead">
+    {{ event.category.icon }} {{ event.category.name }} ·
+    {{ event.organisation.name }} ·
+    {{ formatDate(event.event_date) }}
+  </p>
+
+  @if (notice()) {
+    <div class="alert alert--success">{{ notice() }}</div>
+  }
+
+  @if (error()) {
+    <div class="alert alert--error">{{ error() }}</div>
+  }
+
+  <div class="panel">
+    <app-event-form
+      [event]="event"
+      [categories]="categories()"
+      [organisations]="organisations()"
+      [submitting]="submitting()"
+      submitLabel="Save changes"
+      (save)="save($event)" />
+  </div>
+
+  <!--
+    Registrations for this event. Shown here so staff can see who is affected
+    before changing the details - and so a refused delete makes sense.
+  -->
+  <section class="panel">
+    <div class="section__head">
+      <h2 class="panel__title">Registrations for this event</h2>
+      <span class="pill">{{ registrations().length }}</span>
+    </div>
+
+    @if (registrations().length > 0) {
+      <p class="panel__foot reg-list__total">
+        {{ registrations().length }} booking(s) · {{ totalTickets() }} ticket(s)
+      </p>
+    }
+
+    @if (registrations().length === 0) {
+      <p class="state">
+        Nobody has registered for this event, so it can be deleted.
+      </p>
+    } @else {
+      <ul class="reg-list">
+        @for (registration of registrations(); track registration.registration_id) {
+          <li class="reg-list__row">
+            <span class="reg-list__name">
+              {{ registration.first_name }} {{ registration.last_name }}
+            </span>
+            <span class="reg-list__contact">{{ registration.email }}</span>
+            <span class="reg-list__contact">{{ registration.phone }}</span>
+            <span class="reg-list__tickets">{{ ticketLabel(registration.tickets) }}</span>
+            <span class="reg-list__date">
+              {{ formatDate(registration.registration_date) }}
+            </span>
+          </li>
+        }
+      </ul>
+      <p class="panel__foot">
+        Because registrations exist, this event cannot be deleted — suspend it
+        instead.
+      </p>
+    }
+  </section>
+}
