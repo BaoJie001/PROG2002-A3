@@ -20,3 +20,4 @@ Thumbs.db
 # zipped submissions
 *.zip
 tools/push_via_api.py
+tools/rewrite-author.sh
