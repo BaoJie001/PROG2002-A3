@@ -1,0 +1,40 @@
+<!--
+  Application shell: header + navigation, the routed page, then the footer.
+  <router-outlet /> is where Angular inserts whichever page the URL asked for.
+-->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" routerLink="/" (click)="closeMenu()">
+      <span class="brand__mark">🤝</span>
+      <span class="brand__name">{{ siteName }}</span>
+    </a>
+
+    <button class="nav-toggle" type="button"
+            [attr.aria-expanded]="menuOpen()"
+            aria-label="Toggle navigation"
+            (click)="toggleMenu()">☰</button>
+
+    <nav class="nav" [class.nav--open]="menuOpen()">
+      <a routerLink="/" routerLinkActive="nav__link--active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Home</a>
+      <a routerLink="/search" routerLinkActive="nav__link--active" (click)="closeMenu()">Search</a>
+      <a class="nav__link--admin" [href]="adminUrl">Staff admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container site-main">
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>
+      Giving Coast — bringing Gold Coast charities and their supporters together.
+      Every event on this site supports a cause close to home.
+    </p>
+    <p class="site-footer__small">
+      Built for PROG2002 Web Development II · Assessment 3 · © {{ year }}
+    </p>
+  </div>
+</footer>
