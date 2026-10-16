@@ -1,0 +1,22 @@
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  align-items: end;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 22px;
+}
+
+.filters__actions {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .filters__actions {
+    flex-direction: column;
+  }
+}

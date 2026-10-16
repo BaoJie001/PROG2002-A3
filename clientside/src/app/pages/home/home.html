@@ -1,0 +1,63 @@
+<!-- Hero: what this site is, in one sentence. -->
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__eyebrow">Gold Coast · Queensland</p>
+    <h1 class="hero__title">Charity events worth showing up for</h1>
+    <p class="hero__lead">
+      Four local charities, one calendar. Every event here raises money for a
+      cause on the Gold Coast — pick one, book your tickets, and turn up.
+    </p>
+    <a class="btn btn--primary" routerLink="/search">Find an event</a>
+  </div>
+</section>
+
+<!-- Loading: show a skeleton message rather than a blank page. -->
+@if (loading()) {
+  <p class="state state--loading">Loading events…</p>
+}
+
+<!-- Failure: the service already turned the HTTP error into a sentence. -->
+@if (error()) {
+  <div class="alert alert--error">
+    <p>{{ error() }}</p>
+    <button class="btn btn--small" type="button" (click)="load()">Try again</button>
+  </div>
+}
+
+@if (!loading() && !error()) {
+  <!-- Upcoming ---------------------------------------------------------- -->
+  <section class="section">
+    <div class="section__head">
+      <h2>Upcoming events</h2>
+      <span class="pill">{{ upcoming().length }}</span>
+    </div>
+
+    @if (upcoming().length === 0) {
+      <p class="state">No upcoming events right now — check back soon.</p>
+    } @else {
+      <div class="grid">
+        @for (event of upcoming(); track event.event_id) {
+          <app-event-card [event]="event" />
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Past -------------------------------------------------------------- -->
+  <section class="section">
+    <div class="section__head">
+      <h2>Recently finished</h2>
+      <span class="pill">{{ past().length }}</span>
+    </div>
+
+    @if (past().length === 0) {
+      <p class="state">Nothing in the archive yet.</p>
+    } @else {
+      <div class="grid">
+        @for (event of past(); track event.event_id) {
+          <app-event-card [event]="event" />
+        }
+      </div>
+    }
+  </section>
+}

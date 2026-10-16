@@ -1,0 +1,77 @@
+<h1 class="page-title">Search events</h1>
+<p class="page-lead">
+  Narrow the calendar by day, by place, or by the kind of event you feel like.
+  Leave everything blank to see everything that is still coming up.
+</p>
+
+<!--
+  The form is submitted through Angular's (ngSubmit), so pressing Enter in a
+  text box works exactly like clicking the button.
+-->
+<form class="filters" (ngSubmit)="submit()" novalidate>
+  <div class="field">
+    <label for="date">Date</label>
+    <input id="date" type="date" name="date" [min]="today" [(ngModel)]="criteria.date" />
+  </div>
+
+  <div class="field">
+    <label for="location">Location</label>
+    <input
+      id="location"
+      type="text"
+      name="location"
+      placeholder="Suburb, city or venue"
+      [(ngModel)]="criteria.location"
+    />
+  </div>
+
+  <div class="field">
+    <label for="category">Category</label>
+    <select id="category" name="category" [(ngModel)]="criteria.category">
+      <option value="">Any category</option>
+      @for (category of categories(); track category.category_id) {
+        <option [value]="category.category_id">
+          {{ category.icon }} {{ category.name }} ({{ category.event_count }})
+        </option>
+      }
+    </select>
+  </div>
+
+  <div class="filters__actions">
+    <button class="btn btn--primary" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Searching…' : 'Search' }}
+    </button>
+    <button class="btn btn--ghost" type="button" (click)="clear()">Clear</button>
+  </div>
+</form>
+
+@if (validationMessage()) {
+  <div class="alert alert--warning">{{ validationMessage() }}</div>
+}
+
+@if (error()) {
+  <div class="alert alert--error">{{ error() }}</div>
+}
+
+<!-- results is null until the first search runs, so no misleading message. -->
+@if (results() !== null) {
+  <section class="section">
+    <div class="section__head">
+      <h2>Results</h2>
+      <span class="pill">{{ results()!.length }}</span>
+    </div>
+
+    @if (results()!.length === 0) {
+      <p class="state">
+        No events match those filters. Try a different date, a nearby suburb,
+        or clear the form to see everything upcoming.
+      </p>
+    } @else {
+      <div class="grid">
+        @for (event of results()!; track event.event_id) {
+          <app-event-card [event]="event" />
+        }
+      </div>
+    }
+  </section>
+}

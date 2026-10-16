@@ -1,0 +1,53 @@
+<!--
+  One event card.
+
+  @if / @for are Angular's built-in control flow blocks (Angular 17+). They
+  replace the old *ngIf / *ngFor structural directives: no extra imports in the
+  component, and the template reads like ordinary code.
+-->
+<article class="card" [class.card--past]="isPast()">
+  <a class="card__link" [routerLink]="['/event', event().event_id]">
+    <div class="card__banner" [style.background-image]="'url(' + event().category.image_url + ')'">
+      <span class="card__category">
+        {{ event().category.icon }} {{ event().category.name }}
+      </span>
+      @if (isPast()) {
+        <span class="card__badge card__badge--past">Finished</span>
+      }
+    </div>
+
+    <div class="card__body">
+      <h3 class="card__title">{{ event().name }}</h3>
+
+      <p class="card__meta">
+        <span>📅 {{ formatDate(event().event_date) }}</span>
+        <span>🕒 {{ formatTime(event().start_time) }}</span>
+      </p>
+
+      <p class="card__meta">
+        <span>📍 {{ shortLocation() }}</span>
+        <span>🎟️ {{ formatMoney(event().ticket_price) }}</span>
+      </p>
+
+      <p class="card__summary">{{ event().summary }}</p>
+
+      <!-- Progress towards the fundraising goal. -->
+      <div class="progress" role="img"
+           [attr.aria-label]="'Raised ' + event().progress_percentage + '% of the target'">
+        <div class="progress__bar" [style.width.%]="event().progress_percentage"></div>
+      </div>
+      <p class="card__progress">
+        {{ formatMoney(event().raised_amount) }} raised of {{ formatMoney(event().goal_amount) }}
+        @if (event().registration_count > 0) {
+          <span class="card__registrations">
+            · {{ event().registration_count }} registered
+          </span>
+        }
+      </p>
+
+      <p class="card__organiser">
+        {{ event().organisation.icon }} {{ event().organisation.name }}
+      </p>
+    </div>
+  </a>
+</article>
