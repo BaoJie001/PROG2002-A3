@@ -1,0 +1,830 @@
+{
+  "info": {
+    "_postman_id": "a3f1c2d4-6b7e-4a91-9c3d-5e8f2b1a7c40",
+    "name": "Giving Coast API - PROG2002 A3",
+    "description": "Every endpoint of the Giving Coast API (PROG2002 Assessment 3).\n\nHow to use it:\n1. Import this file into Postman.\n2. Set the variable base_url to your own API root:\n   - local:      http://localhost:3000\n   - cPanel:     https://yourusername.scuweb.net\n3. Run the folder top to bottom, or open Runner and run the whole collection.\n\nEach request has a Test tab that checks the status code and the shape of the\nJSON, so a run turns the folder green or red instead of leaving you to read\nthe responses by eye.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "event_id",
+      "value": "5"
+    },
+    {
+      "key": "new_event_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health - is the API and database up",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('database is connected', () => pm.expect(body.database).to.eql('connected'));",
+              "pm.test('counts are reported', () => {",
+              "    pm.expect(body.counts).to.have.property('events');",
+              "    pm.expect(body.counts.events).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - list upcoming (home page)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('count matches the array length', () => pm.expect(body.count).to.eql(body.events.length));",
+              "pm.test('every event is active and not in the past', () => {",
+              "    const today = new Date().toISOString().slice(0, 10);",
+              "    body.events.forEach(e => {",
+              "        pm.expect(e.status).to.eql('active');",
+              "        pm.expect(e.event_date >= today).to.be.true;",
+              "    });",
+              "});",
+              "pm.test('organiser and category are joined in', () => {",
+              "    const e = body.events[0];",
+              "    pm.expect(e).to.have.property('organisation');",
+              "    pm.expect(e).to.have.property('category');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - search by date (filter)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events?date=2026-11-21",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "2026-11-21"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('at least one event falls on that day', () => pm.expect(body.count).to.be.above(0));",
+              "pm.test('only that exact day is returned', () => {",
+              "    body.events.forEach(e => pm.expect(e.event_date).to.eql('2026-11-21'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - search by location and category",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events?location=Southport&category=6",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ],
+          "query": [
+            {
+              "key": "location",
+              "value": "Southport"
+            },
+            {
+              "key": "category",
+              "value": "6"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('at least one event matches both filters', () => pm.expect(body.count).to.be.above(0));",
+              "pm.test('every result matches both filters', () => {",
+              "    body.events.forEach(e => {",
+              "        pm.expect(e.location.toLowerCase()).to.include('southport');",
+              "        pm.expect(e.category.category_id).to.eql(6);",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - invalid filter (400)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events?date=not-a-date",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ],
+          "query": [
+            {
+              "key": "date",
+              "value": "not-a-date"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('the message explains the problem', () => {",
+              "    pm.expect(pm.response.json().message).to.be.a('string');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - past events",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events/past",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "past"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('every event is in the past', () => {",
+              "    const today = new Date().toISOString().slice(0, 10);",
+              "    body.events.forEach(e => pm.expect(e.event_date < today).to.be.true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - detail with registrations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events/{{event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "{{event_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('registrations are attached', () => pm.expect(body.registrations).to.be.an('array'));",
+              "pm.test('newest purchase first (brief requirement 1b)', () => {",
+              "    const dates = body.registrations.map(r => r.registration_date);",
+              "    const sorted = [...dates].sort().reverse();",
+              "    pm.expect(dates).to.eql(sorted);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events - unknown id (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events/99999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "99999"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - list every event including suspended and past",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "",
+              "// The admin site asks for every event, so the public filters must not",
+              "// quietly hide the suspended and finished ones from staff.",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('returns the whole table, not just upcoming events', () => {",
+              "    pm.expect(body.count).to.be.above(8);",
+              "});",
+              "",
+              "pm.test('suspended or finished events are included', () => {",
+              "    const hidden = body.events.filter(e => e.status === 'suspended' || e.is_past);",
+              "    pm.expect(hidden.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test('every event carries its booking count', () => {",
+              "    body.events.forEach(e => pm.expect(e).to.have.property('registration_count'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events?status=all&period=all",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "all"
+            },
+            {
+              "key": "period",
+              "value": "all"
+            }
+          ]
+        },
+        "description": "What the admin list calls. Without status=all and period=all the API returns only upcoming active events, so staff would never see a suspended event they need to fix, or a finished one they need the record of."
+      },
+      "response": []
+    },
+    {
+      "name": "Admin - create an event (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"organisation_id\": 1,\n  \"category_id\": 4,\n  \"name\": \"Postman Test Gala\",\n  \"summary\": \"Created by the Postman collection to prove the create endpoint.\",\n  \"description\": \"This event is created by an automated test run and deleted again immediately afterwards.\",\n  \"event_date\": \"2026-12-01\",\n  \"start_time\": \"19:00:00\",\n  \"venue\": \"Test Hall\",\n  \"suburb\": \"Southport\",\n  \"city\": \"Gold Coast\",\n  \"state\": \"QLD\",\n  \"ticket_price\": 20,\n  \"goal_amount\": 5000,\n  \"latitude\": -28.03,\n  \"longitude\": 153.43\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('the created event comes back with an id', () => {",
+              "    pm.expect(body.event_id).to.be.a('number');",
+              "    pm.collectionVariables.set('new_event_id', body.event_id);",
+              "});",
+              "pm.test('Location header points at the new resource', () => {",
+              "    pm.expect(pm.response.headers.get('Location')).to.include('/api/events/');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - update that event (200)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ticket_price\": 25,\n  \"summary\": \"Updated by the Postman collection - partial update.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/events/{{new_event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "{{new_event_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('the changed field came back', () => pm.expect(body.ticket_price).to.eql(25));",
+              "pm.test('the untouched field is unchanged', () => pm.expect(body.name).to.eql('Postman Test Gala'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - delete that event (200)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events/{{new_event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "{{new_event_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('deleted', () => pm.response.to.have.status(200));",
+              "pm.test('response confirms the deletion', () => {",
+              "    pm.expect(pm.response.json().deleted).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - delete blocked because people booked (409)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/events/{{event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "{{event_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+              "const body = pm.response.json();",
+              "pm.test('the block is explained, not silent', () => {",
+              "    pm.expect(body.message).to.include('cannot be deleted');",
+              "    pm.expect(body.registration_count).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - list for one event",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/registrations?event_id={{event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ],
+          "query": [
+            {
+              "key": "event_id",
+              "value": "{{event_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('only that event is listed', () => {",
+              "    body.registrations.forEach(r => pm.expect(r.event_id).to.eql(Number(pm.collectionVariables.get('event_id'))));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - new booking (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": 6,\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Tester\",\n  \"email\": \"postman.tester@example.com\",\n  \"phone\": \"0400 111 222\",\n  \"tickets\": 2,\n  \"registration_date\": \"2026-10-16\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('created', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "const body = pm.response.json();",
+              "pm.test('the booking is echoed back', () => {",
+              "    pm.expect(body.email).to.eql('postman.tester@example.com');",
+              "    pm.expect(body.tickets).to.eql(2);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - duplicate booking (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": 6,\n  \"first_name\": \"Postman\",\n  \"last_name\": \"Tester\",\n  \"email\": \"postman.tester@example.com\",\n  \"phone\": \"0400 111 222\",\n  \"tickets\": 2,\n  \"registration_date\": \"2026-10-16\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409 Conflict - one person cannot book twice', () => pm.response.to.have.status(409));",
+              "pm.test('the message is readable, not a SQL error', () => {",
+              "    pm.expect(pm.response.json().message).to.be.a('string');",
+              "    pm.expect(pm.response.json().message).to.not.include('Duplicate entry');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - booking a finished event (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": 1,\n  \"first_name\": \"Late\",\n  \"last_name\": \"Booker\",\n  \"email\": \"late.booker@example.com\",\n  \"phone\": \"0400 333 444\",\n  \"tickets\": 1,\n  \"registration_date\": \"2026-10-16\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409 Conflict - the event has already finished', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - invalid payload (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": \"abc\",\n  \"first_name\": \"\",\n  \"last_name\": \"X\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"1\",\n  \"tickets\": 0,\n  \"registration_date\": \"2030-01-01\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('every broken field is reported, not just the first', () => {",
+              "    const fields = pm.response.json().fields || [];",
+              "    pm.expect(fields.length).to.be.above(1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories - for the search filter",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "categories"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('categories come back with counts', () => {",
+              "    pm.response.json().categories.forEach(c => pm.expect(c).to.have.property('category_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Organisations - for the admin dropdown",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/organisations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "organisations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('organisations come back', () => {",
+              "    pm.expect(pm.response.json().organisations.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather - Open-Meteo forecast for an event",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/weather/{{event_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "weather",
+            "{{event_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK even when no forecast exists', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('the page can tell whether to show the panel', () => {",
+              "    pm.expect(body).to.have.property('available');",
+              "});",
+              "if (body.available) {",
+              "    pm.test('temperatures are real numbers', () => {",
+              "        pm.expect(body.max_temp).to.be.a('number');",
+              "        pm.expect(body.min_temp).to.be.a('number');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
