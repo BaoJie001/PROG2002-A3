@@ -42,6 +42,12 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'charityevents_db',
+  // utf8mb4, not utf8. The category and organisation icons are emoji, which
+  // need four bytes per character; the driver's default (utf8/utf8mb3) stores
+  // only three and silently turns them into '?'. Local MySQL is often
+  // configured with utf8mb4 as the server default so the bug stays hidden -
+  // on a shared host it does not.
+  charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
