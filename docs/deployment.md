@@ -139,3 +139,23 @@ files, so Apache must hand them back to `index.html`. Create
 | Admin page is blank | built without `--base-href=/admin/` |
 | Weather panel never appears | event has no coordinates, or the date is more than ~16 days ahead (both are handled, not errors) |
 | CORS error in the console | `ALLOWED_ORIGIN` is set to a different host than the one in the address bar |
+
+---
+
+## 6. My deployment — Jie Bao (jbao14)
+
+| Part | URL |
+|---|---|
+| Public site | https://24831941.it.scu.edu.au/ |
+| Admin site | https://24831941.it.scu.edu.au/admin/ |
+| API health | https://24831941.it.scu.edu.au/api/health |
+
+Deployed on SCU cPanel: MySQL database `jbao14_charityevents` imported from
+`database/charityevents-db-cpanel.sql` (the version without CREATE DATABASE,
+which the shared host refuses to run), the API registered as a Node.js
+application mounted at `/api`, and both Angular builds uploaded to
+`public_html/` and `public_html/admin/`.
+
+Verified after deployment: `/api/health` reports `database: connected` with
+13 events and 16 registrations; deep links such as `/event/5` and
+`/admin/events/5/edit` return `index.html` (the `.htaccess` rewrite works).
