@@ -28,3 +28,7 @@ submission/_preview_*.pdf
 
 # tutor template copy used by make_storyboard.py
 tools/Storyboard-template.docx
+
+# Word lock files
+~$*
+submission/~$*

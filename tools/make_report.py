@@ -611,7 +611,58 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 9
-    r.h1("9. Deployment")
+    r.h1("9. Interface Storyboard")
+    r.p(
+        "Before the two websites were built, the seven screens were storyboarded on the template "
+        "supplied with the unit: one page per screen, with the layout sketched, the interface text "
+        "listed, and the media noted. The storyboard is submitted alongside this report "
+        "(storyboard-giving-coast.docx) and is reproduced in summary below."
+    )
+    r.p(
+        "Each page of the storyboard carries the same four frames - GRAPHICS, TEXT, AUDIO/VIDEO and "
+        "NOTES - over the five-row table required by the template (Description, Content, "
+        "Interactions, Media Creation, Navigation). The seven screens are the four public pages and "
+        "the three staff pages:"
+    )
+    r.table(
+        ["Screen", "Page", "What it has to do", "Calls"],
+        [
+            ["S1", "Home", "Make a visitor want to attend, and reach an event in one click",
+             "GET /api/events, GET /api/events/past"],
+            ["S2", "Search", "Narrow by date, location and category, any combination",
+             "GET /api/events?date=&location=&category=, GET /api/categories"],
+            ["S3", "Event details", "Everything about one event, plus who is already going",
+             "GET /api/events/:id, GET /api/weather/:eventId"],
+            ["S4", "Register", "Collect the booking and confirm it",
+             "POST /api/registrations"],
+            ["S5", "Staff - event list", "Every event whatever its status, with the doors to create, edit and delete",
+             "GET /api/events?status=all&period=all"],
+            ["S6", "Staff - new event", "Create an event with validation",
+             "POST /api/events, GET /api/organisations, GET /api/categories"],
+            ["S7", "Staff - edit event", "Change an event, and see who it affects",
+             "GET /api/events/:id, PUT /api/events/:id"],
+        ],
+        widths=[1.4, 3.4, 7.2, 4.0],
+        caption="Table 5 - The seven screens, and the endpoint each one depends on.",
+    )
+    r.p(
+        "Drawing the screens first changed three decisions. The registration page was going to be a "
+        "single column, and became two - what you are booking on the left, who you are on the right - "
+        "because the storyboard made it obvious that a visitor needs to see the event while filling in "
+        "the form, not after. The delete rule moved out of a help page and onto the edit screen, where "
+        "the sentence explaining it is read at the moment it matters. And the weather panel was given "
+        "its own request rather than being folded into the event response, so that a slow third party "
+        "could never hold up the page the visitor actually came for."
+    )
+    r.p(
+        "The TEXT frame also caught a wording problem early: the first draft of the register page said "
+        "'Purchase tickets' while the charity runs free events. Writing the interface text on the "
+        "storyboard, before any code existed, made that inconsistency visible in a way that reading the "
+        "requirements had not."
+    )
+
+    # ---------------------------------------------------------------- 10
+    r.h1("10. Deployment")
     r.p(
         "Each team member deployed the whole stack to their own cPanel account, as the brief requires. "
         "The two deployments are identical in structure and differ only in the database name and the "
@@ -626,7 +677,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
             ["Database", "jbao14_charityevents", "cgao15_charityevents"],
         ],
         widths=[3.2, 6.4, 6.4],
-        caption="Table 5 - The two live deployments.",
+        caption="Table 6 - The two live deployments.",
     )
     r.p(
         "The steps were: create the database and user in cPanel; import the exported SQL through "
@@ -644,7 +695,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 10
-    r.h1("10. Problems Encountered and What They Taught Us")
+    r.h1("11. Problems Encountered and What They Taught Us")
     r.p(
         "Four things went wrong during deployment. They are recorded here because each one turned out to "
         "be a lesson about the layer beneath the one we thought we were working on."
@@ -691,7 +742,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 11
-    r.h1("11. Teamwork")
+    r.h1("12. Teamwork")
     r.p(
         "The work was split so that each of us owned a vertical slice of the stack and could explain it "
         "end to end in the video, rather than one person writing all the SQL and the other all the HTML."
@@ -710,12 +761,12 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
              "Postman collection with assertions, code comments"],
         ],
         widths=[3.4, 6.3, 6.3],
-        caption="Table 6 - Division of work.",
+        caption="Table 7 - Division of work.",
     )
     r.p(
         "Git history is the evidence. Each commit message is prefixed with the owner and the part of the "
         "brief it belongs to - A1, A2, A3 for Jie's work and B1, B4, B7, B9, B11, B12 for Chengyu's - so "
-        "the log can be read as a checklist against Table 6. The A3 and B3 commits are deliberately "
+        "the log can be read as a checklist against Table 7. The A3 and B3 commits are deliberately "
         "interleaved rather than grouped by author: each person's work was pushed as it was finished, and "
         "a commit describes one change rather than one afternoon. Work spans more than one day, and "
         "every commit message explains why the change was made, not just what changed."
@@ -728,7 +779,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 12
-    r.h1("12. My Individual Contribution")
+    r.h1("13. My Individual Contribution")
     for item in own_work:
         if isinstance(item, tuple):
             r.lead(item[0], item[1])
@@ -740,7 +791,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 13
-    r.h1("13. Conclusion")
+    r.h1("14. Conclusion")
     r.p(
         "Assessment 3 turned a read-only catalogue into an application that accepts data, protects it, "
         "and can be operated by somebody who is not a programmer. The parts we are most satisfied with "
@@ -757,7 +808,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     )
 
     # ---------------------------------------------------------------- 14
-    r.h1("14. GenAI Acknowledgement and Chat Log")
+    r.h1("15. GenAI Acknowledgement and Chat Log")
     r.p(
         "I acknowledge that I have used GenAI tools to complete this assessment. I used WorkBuddy (an AI "
         "coding assistant) to brainstorm the schema change needed for event registration and the set of "
@@ -779,7 +830,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
              "Ran the experiments that eliminated the first two explanations and identified the real one"],
         ],
         widths=[3.2, 7.2, 5.6],
-        caption="Table 7 - How GenAI was used, and what it did not do.",
+        caption="Table 8 - How GenAI was used, and what it did not do.",
     )
     r.p(
         "Every design decision recorded in this report is mine and I can explain it, and I am prepared to "
@@ -806,13 +857,14 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
             ["Admin list of all events regardless of status", "adminside/src/app/pages/event-list/ with ?status=all"],
             ["Admin create, update, delete with feedback", "event-new, event-edit, event-list"],
             ["Navigation on every page", "adminside/src/app/app.html - shell component"],
-            ["Both websites and the API deployed", "Table 5; /api/health returns database: connected"],
+            ["Both websites and the API deployed", "Table 6; /api/health returns database: connected"],
             ["GitHub history with meaningful messages", "29 commits, two authors, prefixed with owner and part"],
             ["Angular used for both websites (extra)", "Table 4"],
+            ["Interface storyboard for all seven screens", "Section 9 and storyboard-giving-coast.docx"],
             ["Open-Meteo weather API (extra)", "api/routes/weather.js and the panel on the event page"],
         ],
         widths=[7.6, 8.4],
-        caption="Table 8 - Requirement to evidence.",
+        caption="Table 9 - Requirement to evidence.",
     )
 
     r.p("")
@@ -854,7 +906,7 @@ JIE_WORK = [
      "how the second deployment - Chengyu's - took an afternoon instead of the day mine took. Three "
      "things went wrong that I did not expect: the emoji icons arrived as question marks, the staff "
      "site served a blank page, and the API connected to the database as the wrong user because the "
-     "environment variables had never been saved. Section 10 covers the diagnoses; the short version "
+     "environment variables had never been saved. Section 11 covers the diagnoses; the short version "
      "is that all three happened one layer below where I was looking."),
 
     ("What I would do differently.",
@@ -907,7 +959,7 @@ CHENGYU_WORK = [
 
     ("Deployment and testing.",
      "I deployed everything to my own cPanel account following the guide, which is where I hit the "
-     "problem described in Section 10: the API reported 'Access denied for root@localhost' because "
+     "problem described in Section 11: the API reported 'Access denied for root@localhost' because "
      "the environment variables had not been saved, and we moved to a .env file to make the "
      "configuration explicit. That error message was what taught me to read a connection failure "
      "carefully - it named the user and the host, and the answer was in those two words. I also wrote "
