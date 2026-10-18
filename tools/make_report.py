@@ -19,7 +19,7 @@ from docx.oxml import OxmlElement
 
 BODY_PT = 12
 CODE_PT = 9
-TABLE_PT = 9.5
+TABLE_PT = 9.0   # one size for every table in the document
 
 
 # --------------------------------------------------------------------------
@@ -792,8 +792,8 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
     # The user approved the standalone document's layout, so section 9 uses
     # the exact same code path (Comic Sans template style, bordered frames,
     # template five-row table) rather than the report's own styles.
-    SB_FONT = "Comic Sans MS"
-    SB_BODY = 10
+    SB_FONT = "Arial"      # same family as the rest of the report
+    SB_BODY = TABLE_PT
     SB_W = 15.4          # report text column is narrower than the template's
 
     def sb_font(run, size=SB_BODY, bold=False):
@@ -830,15 +830,17 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
             borders.append(el)
         tblPr.append(borders)
 
-    def sb_cell_text(cell, text):
+    def sb_cell_text(cell, text, bold=False, fill=None):
         par = cell.paragraphs[0]
         par.paragraph_format.line_spacing = 1.0
-        par.paragraph_format.space_after = Pt(0)
+        par.paragraph_format.space_after = Pt(1)
+        if fill:
+            shade(cell, fill)
         for extra in cell.paragraphs[1:]:
             extra._p.getparent().remove(extra._p)
         for run in list(par.runs):
             run._element.getparent().remove(run._element)
-        sb_font(par.add_run(text))
+        sb_font(par.add_run(text), bold=bold)
 
     def sb_boxed(doc, label, image=None, text=None):
         table = doc.add_table(rows=1, cols=1)
@@ -862,14 +864,14 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
                 cp = cell.add_paragraph()
                 cp.paragraph_format.line_spacing = 1.0
                 cp.paragraph_format.space_after = Pt(0)
-                sb_font(cp.add_run(text), size=9)
+                sb_font(cp.add_run(text), size=TABLE_PT)
         elif text:
             lines = text if isinstance(text, list) else [text]
             for line in lines:
                 bp = cell.add_paragraph()
                 bp.paragraph_format.line_spacing = 1.0
                 bp.paragraph_format.space_after = Pt(0)
-                sb_font(bp.add_run(line), size=9)
+                sb_font(bp.add_run(line), size=TABLE_PT)
         gap = doc.add_paragraph()
         gap.paragraph_format.line_spacing = 1.0
         gap.paragraph_format.space_after = Pt(0)
@@ -886,16 +888,23 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
             br.paragraph_format.space_after = Pt(0)
             br.add_run().add_break(WD_BREAK.PAGE)
 
-        # heading, exactly as the standalone document renders it
-        h = r.doc.add_paragraph(style="Heading 1")
+        # heading in the report's own h1 style so it matches sections 1-15
+        h = r.h1("Storyboard")
         h.paragraph_format.space_before = Pt(0)
-        h.paragraph_format.space_after = Pt(6)
         h.paragraph_format.line_spacing = 1.0
-        sb_font(h.add_run("Storyboard"), size=14, bold=True)
 
-        sb_par(r.doc, f"TITLE: {scr['title']}      SCREEN ID: {scr['id']}      DATE: {SB_DATE}")
-        sb_par(r.doc, "", space_after=0)
-        sb_par(r.doc, "Elements:", size=14, bold=True, space_after=2)
+        # meta line: bold labels and normal values, on one line
+        meta = r.doc.add_paragraph()
+        meta.paragraph_format.line_spacing = 1.0
+        meta.paragraph_format.space_before = Pt(0)
+        meta.paragraph_format.space_after = Pt(6)
+        for label, value, gap in (("TITLE: ", scr["title"], "    "),
+                                  ("SCREEN ID: ", scr["id"], "    "),
+                                  ("DATE: ", SB_DATE, "")):
+            sb_font(meta.add_run(label), size=TABLE_PT + 1, bold=True)
+            sb_font(meta.add_run(value + gap), size=TABLE_PT + 1)
+
+        sb_par(r.doc, "Elements:", size=12, bold=True, space_after=2)
 
         sb_boxed(r.doc, "GRAPHICS:",
                  image=os.path.join(shots_dir, scr["img"]),
@@ -905,7 +914,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         sb_boxed(r.doc, "TEXT:", text=TEXT_ITEMS[scr["id"]])
         sb_boxed(r.doc, "AUDIO/VIDEO:", text=AUDIO_VIDEO[scr["id"]])
 
-        sb_par(r.doc, "NOTES", size=14, bold=True, space_after=2)
+        sb_par(r.doc, "NOTES", size=12, bold=True, space_after=2)
         sb_boxed(r.doc, "NOTES:", text=NOTES[scr["id"]])
 
         five = r.doc.add_table(rows=5, cols=2)
@@ -913,7 +922,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         labels = ["Description:", "Content:", "Interactions:", "Media Creation:", "Navigation:"]
         values = [scr["desc"], scr["content"], scr["interactions"], scr["media"], scr["navigation"]]
         for i, row in enumerate(five.rows):
-            sb_cell_text(row.cells[0], labels[i])
+            sb_cell_text(row.cells[0], labels[i], bold=True, fill="E8EEF4")
             sb_cell_text(row.cells[1], values[i])
             row.cells[0].width = Cm(3.4)
             row.cells[1].width = Cm(12.0)
@@ -939,7 +948,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         ],
         widths=[1.4, 3.2, 2.0, 9.4],
         caption="Table 5 - The seven screens the storyboard covers.",
-        size=8.5,
+        size=TABLE_PT,
         tight=True,
     )
 
