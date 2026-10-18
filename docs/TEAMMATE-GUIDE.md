@@ -156,7 +156,13 @@ Postman 里 **Import** → 选这两个文件：
 
 ## 第 7 步：提交你的部分（最重要的一步）
 
-你认领的模块我已经写好并放在仓库里了。你要做的是**在你的目录里，用你的身份，把它们分批提交上去**。
+> ⚠️ **重要：仓库里已经有一份完整代码了**（24 个提交，12 个挂你的名字）。
+> 所以**不要**再去 `git add` 你模块里的那些文件——它们和仓库里的一模一样，
+> 没有差异，git 会直接告诉你 `nothing to commit`，推不上去。
+>
+> 你现在要做的是**产生新的、真实的小改动**再提交。改动越小越真实越好，
+> 而且这些改动只有你能做（要填你自己的学号、你自己的网址），所以它们天然
+> 就是"你的提交"。
 
 先确认你目录里的文件是最新的：
 
@@ -166,7 +172,58 @@ git checkout master
 git pull
 ```
 
-### 建议分 3 批提交（别一次全交，真实感更重要）
+**最快的做法：看 `docs/teammate-quickstart.md`**，只有两个命令，5 分钟搞定。
+下面是完整说明。
+
+### 建议分 2 批提交（两天各一次，显示真实进度）
+
+**第 1 批（今天）—— 在分工表里填上你自己的信息**
+
+`docs/teamwork-plan.md` 里 Member B 那一列的三格还是 `_(fill in)_`：你的
+Student ID、Cohort、Team ID。只有你知道，所以只能你填。
+
+用记事本打开改，或者一条命令替换：
+
+```powershell
+cd D:\PROG2002-A3-teammate
+notepad docs\teamwork-plan.md
+```
+
+```bash
+git add docs/teamwork-plan.md
+git commit -m "B12: fill in my student id, cohort and team id
+
+The work plan still had placeholders in the Member B column. Only I know
+these three values, so this commit has to come from me."
+git push
+```
+
+**第 2 批（部署完之后）—— 在部署文档里填上你自己的三个网址**
+
+```bash
+git add docs/deployment.md
+git commit -m "B12: record my own cPanel URLs after deploying
+
+Each of us deploys to our own cPanel, so the URLs in this file are different
+for each of us."
+git push
+```
+
+两次提交之间隔一天，`commits` 页面就会显示两个不同的日期——老师要的
+"regularly committing" 就是这个。
+
+### 想多交一点？（可选）
+
+如果你愿意再多留点痕迹，挑**你认领的文件**（`api/routes/registrations.js`、
+`api/routes/weather.js`、`clientside/src/app/pages/register/`、
+`clientside/src/app/pages/event-detail/`、`adminside/src/app/pages/event-edit/`、
+`docs/postman/`）做一处真实的小修改再提交，比如补一句"为什么"的注释、
+给 Postman 集合写一个 `docs/postman/README.md`。**必须是新改动**，重复提交
+已有的内容不会有 diff。
+
+---
+
+### （以下是早期的分批方案，仅作参考，现在直接用上面的两步）
 
 **第 1 批 —— 报名与天气接口**
 
@@ -295,7 +352,12 @@ npx ng build --base-href=/admin/
 | 视频链接 | 传 SCU OneDrive，取 **Anyone with the link** |
 | Peer evaluation form | 自己填、**保密**、邮件发给 **tutor（不是 UA）**，标题 `PROG2002_A3_[Team_ID]_[Member_name]` |
 
-打包命令：
+### 先写你自己的 GenAI 声明（Brief 要求必须随提交一起交）
+
+仓库根目录有个 `GENAI-DECLARATION.md`（署名是我的）。**复制一份，把名字改成你自己的**，
+声明里也要换成你自己用 AI 干了什么。这是**个人**声明，两人各交各的，不能共用一份。
+
+### 打包命令
 
 ```bash
 cd D:\PROG2002-A3-teammate
@@ -305,6 +367,17 @@ git archive --format=zip --output=你的用户名A3-adminside.zip HEAD adminside
 ```
 
 （`git archive` 直接打包仓库内容，天然不含 `node_modules`、`dist` 和 `.env`。）
+
+再把**你自己那份**声明塞进三个 zip（每个 zip 里都要有一份，老师打开任一个都能看到）：
+
+```bash
+zip -j 你的用户名A3-api.zip        GENAI-DECLARATION.md
+zip -j 你的用户名A3-clientside.zip GENAI-DECLARATION.md
+zip -j 你的用户名A3-adminside.zip  GENAI-DECLARATION.md
+```
+
+Windows 没有 `zip` 命令的话，直接用压缩软件把 `GENAI-DECLARATION.md` 拖进三个
+zip 的根目录也一样。（`-j` 表示只放文件本身，不带路径。）
 
 ---
 

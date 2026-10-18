@@ -1,6 +1,6 @@
 # GenAI Use Declaration — PROG2002 Assessment 3
 
-**Student:** Jie Bao (包杰) — _(add your student ID here)_
+**Student:** Jie Bao (包杰) — 24831941
 **Unit:** PROG2002 Web Development II · Assessment 3 (Group of two)
 **GenAI Use Level:** Level 2 — Purpose-Specific GenAI Use Permitted
 
