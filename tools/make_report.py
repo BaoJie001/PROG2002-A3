@@ -788,56 +788,141 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         "Description, Content, Interactions, Media Creation and Navigation."
     )
 
+    # --- faithful port of the standalone storyboard's rendering -----------
+    # The user approved the standalone document's layout, so section 9 uses
+    # the exact same code path (Comic Sans template style, bordered frames,
+    # template five-row table) rather than the report's own styles.
+    SB_FONT = "Comic Sans MS"
+    SB_BODY = 10
+    SB_W = 15.4          # report text column is narrower than the template's
+
+    def sb_font(run, size=SB_BODY, bold=False):
+        run.font.name = SB_FONT
+        run.font.size = Pt(size)
+        run.bold = bold
+        rpr = run._element.get_or_add_rPr()
+        rfonts = rpr.find(qn("w:rFonts"))
+        if rfonts is None:
+            rfonts = OxmlElement("w:rFonts")
+            rpr.append(rfonts)
+        for attr in ("w:ascii", "w:hAnsi", "w:cs"):
+            rfonts.set(qn(attr), SB_FONT)
+
+    def sb_par(doc, text="", size=SB_BODY, bold=False, space_after=4):
+        par = doc.add_paragraph()
+        pf = par.paragraph_format
+        pf.line_spacing = 1.0
+        pf.space_before = Pt(0)
+        pf.space_after = Pt(space_after)
+        if text:
+            sb_font(par.add_run(text), size=size, bold=bold)
+        return par
+
+    def sb_borders(table):
+        tblPr = table._tbl.tblPr
+        borders = OxmlElement("w:tblBorders")
+        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+            el = OxmlElement(f"w:{edge}")
+            el.set(qn("w:val"), "single")
+            el.set(qn("w:sz"), "4")
+            el.set(qn("w:space"), "0")
+            el.set(qn("w:color"), "808080")
+            borders.append(el)
+        tblPr.append(borders)
+
+    def sb_cell_text(cell, text):
+        par = cell.paragraphs[0]
+        par.paragraph_format.line_spacing = 1.0
+        par.paragraph_format.space_after = Pt(0)
+        for extra in cell.paragraphs[1:]:
+            extra._p.getparent().remove(extra._p)
+        for run in list(par.runs):
+            run._element.getparent().remove(run._element)
+        sb_font(par.add_run(text))
+
+    def sb_boxed(doc, label, image=None, text=None):
+        table = doc.add_table(rows=1, cols=1)
+        sb_borders(table)
+        cell = table.rows[0].cells[0]
+        cell.width = Cm(SB_W)
+        table.columns[0].width = Cm(SB_W)
+
+        par = cell.paragraphs[0]
+        par.paragraph_format.line_spacing = 1.0
+        par.paragraph_format.space_after = Pt(2)
+        sb_font(par.add_run(label))
+
+        if image is not None:
+            ip = cell.add_paragraph()
+            ip.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            ip.paragraph_format.line_spacing = 1.0
+            ip.paragraph_format.space_after = Pt(2)
+            ip.add_run().add_picture(image, width=Cm(10.2))
+            if text:
+                cp = cell.add_paragraph()
+                cp.paragraph_format.line_spacing = 1.0
+                cp.paragraph_format.space_after = Pt(0)
+                sb_font(cp.add_run(text), size=9)
+        elif text:
+            lines = text if isinstance(text, list) else [text]
+            for line in lines:
+                bp = cell.add_paragraph()
+                bp.paragraph_format.line_spacing = 1.0
+                bp.paragraph_format.space_after = Pt(0)
+                sb_font(bp.add_run(line), size=9)
+        gap = doc.add_paragraph()
+        gap.paragraph_format.line_spacing = 1.0
+        gap.paragraph_format.space_after = Pt(0)
+        sb_font(gap.add_run(" "), size=4)
+
     screens = load_storyboard_data()
     TEXT_ITEMS, AUDIO_VIDEO, NOTES = storyboard_frames()
     SB_DATE = storyboard_date()
-    for index, s in enumerate(screens, start=1):
-        # Every screen starts on its own page, including the first one, so
-        # nothing from the overview table can ever bleed onto a screen page.
-        r.page_break()
 
-        h = r.h1(f"Storyboard {s['id']} - {s['title']}")
+    for index, scr in enumerate(screens, start=1):
+        if index > 1:
+            br = r.doc.add_paragraph()
+            br.paragraph_format.line_spacing = 1.0
+            br.paragraph_format.space_after = Pt(0)
+            br.add_run().add_break(WD_BREAK.PAGE)
+
+        # heading, exactly as the standalone document renders it
+        h = r.doc.add_paragraph(style="Heading 1")
         h.paragraph_format.space_before = Pt(0)
+        h.paragraph_format.space_after = Pt(6)
+        h.paragraph_format.line_spacing = 1.0
+        sb_font(h.add_run("Storyboard"), size=14, bold=True)
 
-        # one compact meta line: bold labels, normal values, must not wrap
-        meta = r.doc.add_paragraph()
-        meta.paragraph_format.space_after = Pt(6)
-        meta.paragraph_format.line_spacing = 1.0
-        for label, value, gap in (("TITLE: ", s["title"], "    "),
-                                  ("SCREEN ID: ", s["id"], "    "),
-                                  ("DATE: ", SB_DATE, "")):
-            set_run_font(meta.add_run(label), size=11, bold=True)
-            set_run_font(meta.add_run(value + gap), size=11)
+        sb_par(r.doc, f"TITLE: {scr['title']}      SCREEN ID: {scr['id']}      DATE: {SB_DATE}")
+        sb_par(r.doc, "", space_after=0)
+        sb_par(r.doc, "Elements:", size=14, bold=True, space_after=2)
 
-        r.subhead("Elements:")
-        r.frame("GRAPHICS:", image=os.path.join(shots_dir, s["img"]),
-                text="Live screenshot of the deployed page (https://24831941.it.scu.edu.au), taken "
-                     "with headless Chrome. The layout is the design; every value on it comes from "
-                     "the API.",
-                image_cm=6.0 if s["id"] == "S1" else 6.8)
-        r.frame("TEXT:", bullets=TEXT_ITEMS[s["id"]])
-        r.frame("AUDIO/VIDEO:", text=AUDIO_VIDEO[s["id"]])
+        sb_boxed(r.doc, "GRAPHICS:",
+                 image=os.path.join(shots_dir, scr["img"]),
+                 text="Live screenshot of the deployed page (https://24831941.it.scu.edu.au), taken "
+                      "with headless Chrome. The layout is the design; every value on it comes from "
+                      "the API.")
+        sb_boxed(r.doc, "TEXT:", text=TEXT_ITEMS[scr["id"]])
+        sb_boxed(r.doc, "AUDIO/VIDEO:", text=AUDIO_VIDEO[scr["id"]])
 
-        r.subhead("NOTES")
-        r.frame("NOTES:", text=NOTES[s["id"]])
+        sb_par(r.doc, "NOTES", size=14, bold=True, space_after=2)
+        sb_boxed(r.doc, "NOTES:", text=NOTES[scr["id"]])
 
-        r.table(
-            ["", ""],
-            [[k, s[key]] for k, key in (
-                ("Description:", "desc"),
-                ("Content:", "content"),
-                ("Interactions:", "interactions"),
-                ("Media Creation:", "media"),
-                ("Navigation:", "navigation"),
-            )],
-            widths=[3.2, 12.5],
-            caption=None,
-            hide_header=True,
-            first_col_bold=True,
-            first_col_shade=True,
-            size=8.5,
-            tight=True,
-        )
+        five = r.doc.add_table(rows=5, cols=2)
+        sb_borders(five)
+        labels = ["Description:", "Content:", "Interactions:", "Media Creation:", "Navigation:"]
+        values = [scr["desc"], scr["content"], scr["interactions"], scr["media"], scr["navigation"]]
+        for i, row in enumerate(five.rows):
+            sb_cell_text(row.cells[0], labels[i])
+            sb_cell_text(row.cells[1], values[i])
+            row.cells[0].width = Cm(3.4)
+            row.cells[1].width = Cm(12.0)
+        for column, width in zip(five.columns, (Cm(3.4), Cm(12.0))):
+            column.width = width
+        gap = r.doc.add_paragraph()
+        gap.paragraph_format.line_spacing = 1.0
+        gap.paragraph_format.space_after = Pt(0)
+        sb_font(gap.add_run(" "), size=4)
 
     # the overview table comes after the screens so it can never split a
     # screen page; it closes the section as an index of what was covered.
