@@ -159,3 +159,35 @@ application mounted at `/api`, and both Angular builds uploaded to
 Verified after deployment: `/api/health` reports `database: connected` with
 13 events and 16 registrations; deep links such as `/event/5` and
 `/admin/events/5/edit` return `index.html` (the `.htaccess` rewrite works).
+
+---
+
+## 7. My deployment — Chengyu Gao (cgao15)
+
+| Part | URL |
+|---|---|
+| Public site | https://24832054.it.scu.edu.au/ |
+| Admin site | https://24832054.it.scu.edu.au/admin/ |
+| API health | https://24832054.it.scu.edu.au/api/health |
+
+Deployed on my own SCU cPanel, following the same procedure: MySQL database
+`cgao15_charityevents` imported from `database/charityevents-db-cpanel.sql`,
+the API registered as a Node.js application mounted at `/api`, and both
+Angular builds uploaded to `public_html/` and `public_html/admin/` (the admin
+build with `--base-href=/admin/`).
+
+Verified after deployment: `/api/health` returns
+
+```json
+{"api":"running","database":"connected","dbName":"cgao15_charityevents",
+ "counts":{"events":13,"registrations":16,"categories":6}}
+```
+
+which is the check I rely on — it names the database the API is actually
+connected to, so a wrong credential cannot hide behind a page that looks fine.
+
+The one thing that went wrong is described in Section 5: the API answered
+`Access denied for user root@localhost` because the environment variables had
+been typed into the cPanel form but never applied. Moving them into a `.env`
+file read by dotenv fixed it, and that is the change I would make first on any
+deployment now.
