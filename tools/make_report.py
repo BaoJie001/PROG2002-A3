@@ -8,6 +8,7 @@ Arial 12 pt, 1.5 line spacing.
 Run:  python make_report.py
 """
 
+import os
 import sys
 from docx import Document
 from docx.shared import Pt, Cm
@@ -202,12 +203,39 @@ class Report:
         self.doc.save(path)
         return path
 
+    def figure(self, image_path, caption, width_cm=14.5):
+        """A screenshot with a numbered caption, kept together on one page."""
+        par = self.doc.add_paragraph()
+        par.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pf = par.paragraph_format
+        pf.space_before = Pt(8)
+        pf.space_after = Pt(2)
+        pf.line_spacing = 1.0
+        keep_with_next(par)
+        par.add_run().add_picture(image_path, width=Cm(width_cm))
+
+        cap = self.doc.add_paragraph()
+        cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cap.paragraph_format.space_after = Pt(10)
+        cap.paragraph_format.line_spacing = 1.0
+        set_run_font(cap.add_run(caption), size=9, italic=True)
+
+        border = OxmlElement("w:pBdr")
+        for edge in ("top", "left", "bottom", "right"):
+            el = OxmlElement(f"w:{edge}")
+            el.set(qn("w:val"), "single")
+            el.set(qn("w:sz"), "4")
+            el.set(qn("w:space"), "4")
+            el.set(qn("w:color"), "BFBFBF")
+            border.append(el)
+        par._p.get_or_add_pPr().append(border)
+
 
 # --------------------------------------------------------------------------
 # the report
 # --------------------------------------------------------------------------
 
-def build(student_id, last_name, first_name, own_work, filename, base_url):
+def build(student_id, last_name, first_name, own_work, filename, base_url, shots_dir):
     r = Report()
 
     r.title("PROG2002 - Web Development II")
@@ -615,14 +643,14 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     r.p(
         "Before the two websites were built, the seven screens were storyboarded on the template "
         "supplied with the unit: one page per screen, with the layout sketched, the interface text "
-        "listed, and the media noted. The storyboard is submitted alongside this report "
-        "(storyboard-giving-coast.docx) and is reproduced in summary below."
+        "listed, and the media noted. Each storyboard page carries four frames - GRAPHICS, TEXT, "
+        "AUDIO/VIDEO and NOTES - over the five-row table the template provides (Description, Content, "
+        "Interactions, Media Creation, Navigation)."
     )
     r.p(
-        "Each page of the storyboard carries the same four frames - GRAPHICS, TEXT, AUDIO/VIDEO and "
-        "NOTES - over the five-row table required by the template (Description, Content, "
-        "Interactions, Media Creation, Navigation). The seven screens are the four public pages and "
-        "the three staff pages:"
+        "The seven screens are the four public pages and the three staff pages. Table 5 maps each one "
+        "to the endpoint it depends on; Figures 1 to 7 show them as they are running on the deployed "
+        "site, with the storyboard row for each screen reproduced underneath."
     )
     r.table(
         ["Screen", "Page", "What it has to do", "Calls"],
@@ -645,20 +673,83 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
         widths=[1.4, 3.4, 7.2, 4.0],
         caption="Table 5 - The seven screens, and the endpoint each one depends on.",
     )
+
+    screens = [
+        ("S1", "Home", "S1-home.png",
+         "Graphics: hero panel, a grid of eight event cards, then the recently finished grid. "
+         "Text: eyebrow 'Gold Coast - Queensland', headline 'Charity events worth showing up for', "
+         "the 'Find an event' button, and on every card the name, date, time, venue, price, "
+         "'$X raised of $Y goal' and 'N registered'. "
+         "Media: none - the category icons are characters stored in the database, and the colour "
+         "bands and progress bars are CSS computed from API values. "
+         "Navigation: the hero button and the menu go to Search, any card opens S3.",
+         "A broken back end shows immediately as an empty grid with a retry button rather than a "
+         "silent blank page."),
+        ("S2", "Search", "S2-search.png",
+         "Graphics: a filter bar over the same card grid the home page uses, so the two pages cannot "
+         "look or behave differently. "
+         "Text: 'Leave everything blank to see everything that is still coming up', labels Date / "
+         "Location / Category, buttons Search and Clear. "
+         "Media: the category dropdown is filled from GET /api/categories. "
+         "Navigation: reached from the home hero or the menu; a card opens S3.",
+         "Filtering runs on the server, so this page only draws results. 'No search yet' and 'no "
+         "results' are deliberately two different states."),
+        ("S3", "Event details", "S3-detail.png",
+         "Graphics: breadcrumb, the event block, the progress bar, then three panels - who is going, "
+         "expected weather, and who runs it. "
+         "Text: 'Who is going' with each name, ticket count and booking date; 'Expected weather' with "
+         "the icon, description and max/min; the Register button. "
+         "Media: the weather icon is a character mapped from the Open-Meteo code by our own API, not "
+         "an image file. "
+         "Navigation: in from any card; out to S4 through the Register button.",
+         "Social proof sits next to the price because it is the strongest reason to book. The weather "
+         "is a separate request, so a slow third party never delays the page the visitor came for."),
+        ("S4", "Register", "S4-register.png",
+         "Graphics: two columns - the event on the left, the form on the right. "
+         "Text: 'Your details', then first name, last name, email, contact phone, number of tickets, "
+         "date of registration and optional notes; a live 'Total: $X'; the 'Complete registration' "
+         "button. On success the form is replaced by 'You are registered'. "
+         "Media: none - the total is computed from tickets times price. "
+         "Navigation: in from S3 carrying eventId in the query string; after booking, back to S3.",
+         "Drawing this screen changed it: a single column became two, because a visitor needs to see "
+         "the event while filling in the form, not afterwards."),
+        ("S5", "Staff - event list", "S5-admin-list.png",
+         "Graphics: a status filter strip above a table with an action column. "
+         "Text: '+ New event', chips reading All 13 / Active 8 / Past 4 / Suspended 1, column "
+         "headings ID / Event / Date / Location / Status / Ticket / Registrations / Actions, and Edit "
+         "and Delete on each row. "
+         "Media: status badges are coloured text. "
+         "Navigation: in from the public menu; out to S6, S7, or the public site.",
+         "The counts live on the chips because 'how many are suspended?' is the first question staff "
+         "ask, and they are counted from the rows actually on screen."),
+        ("S6", "Staff - new event", "S6-admin-new.png",
+         "Graphics: one long form in three groups, ending with a separate Venue coordinates group. "
+         "Text: required fields marked with an asterisk, and the note 'Used by the Open-Meteo forecast "
+         "on the event page. Leave blank if unknown.' "
+         "Media: the two dropdowns are filled from the same lists the public site shows. "
+         "Navigation: in from S5; Save or Cancel returns to S5.",
+         "Create and edit share one form component, so the two field sets cannot drift apart."),
+        ("S7", "Staff - edit event", "S7-admin-edit.png",
+         "Graphics: the same form, pre-filled, with the registration list underneath. "
+         "Text: the booking count and total tickets, then each booking with name, email, phone and "
+         "date, and the sentence 'Because registrations exist, this event cannot be deleted - suspend "
+         "it instead.' "
+         "Media: none beyond the data. "
+         "Navigation: in from S5; Save or Cancel returns to S5.",
+         "This is where drawing the screens changed the design again: the delete rule moved out of a "
+         "help page and onto this screen, where it is read at the moment it matters."),
+    ]
+
+    for index, (sid, name, image, body, note) in enumerate(screens, start=1):
+        r.figure(os.path.join(shots_dir, image),
+                 f"Figure {index} - {sid}: {name}")
+        r.p(body, space_after=4)
+        r.p(f"Note: {note}", italic=True, space_after=10)
+
     r.p(
-        "Drawing the screens first changed three decisions. The registration page was going to be a "
-        "single column, and became two - what you are booking on the left, who you are on the right - "
-        "because the storyboard made it obvious that a visitor needs to see the event while filling in "
-        "the form, not after. The delete rule moved out of a help page and onto the edit screen, where "
-        "the sentence explaining it is read at the moment it matters. And the weather panel was given "
-        "its own request rather than being folded into the event response, so that a slow third party "
-        "could never hold up the page the visitor actually came for."
-    )
-    r.p(
-        "The TEXT frame also caught a wording problem early: the first draft of the register page said "
-        "'Purchase tickets' while the charity runs free events. Writing the interface text on the "
-        "storyboard, before any code existed, made that inconsistency visible in a way that reading the "
-        "requirements had not."
+        "Writing the TEXT frame also caught a wording problem before any code existed: the first "
+        "draft of the register page said 'Purchase tickets' while several events are free. Drawing "
+        "the screen made that inconsistency visible in a way that reading the requirements had not."
     )
 
     # ---------------------------------------------------------------- 10
@@ -969,8 +1060,9 @@ CHENGYU_WORK = [
 
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "."
+    shots = sys.argv[2] if len(sys.argv) > 2 else os.path.join(out, "screenshots")
     build("24831941", "Bao (\u5305)", "Jie (\u6770)", JIE_WORK,
-          f"{out}/jbao14A3-report.docx", "https://24831941.it.scu.edu.au")
+          f"{out}/jbao14A3-report.docx", "https://24831941.it.scu.edu.au", shots)
     build("24832054", "Gao", "Chengyu", CHENGYU_WORK,
-          f"{out}/cgao15A3-report.docx", "https://24832054.it.scu.edu.au")
+          f"{out}/cgao15A3-report.docx", "https://24832054.it.scu.edu.au", shots)
     print("done")
