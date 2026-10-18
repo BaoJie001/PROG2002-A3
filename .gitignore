@@ -21,3 +21,7 @@ Thumbs.db
 *.zip
 tools/push_via_api.py
 tools/rewrite-author.sh
+
+# page previews exported while checking the report
+submission/_p*.pdf
+submission/_preview_*.pdf
