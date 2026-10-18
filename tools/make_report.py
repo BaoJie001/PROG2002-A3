@@ -407,8 +407,20 @@ def storyboard_frames():
     return TEXT_ITEMS, AUDIO_VIDEO, NOTES
 
 
+def byline(name, me):
+    """'Chengyu Gao (24832054)' -> 'Chengyu Gao (me)' for the student whose copy
+    this is; the other name is left as it appears on the teamwork plan."""
+    name = name.strip()
+    if not name.startswith(me):
+        return name
+    if "(248" in name:
+        return name.split("(248")[0].strip() + " (me)"
+    return name
+
+
 def build(student_id, last_name, first_name, own_work, filename, base_url, shots_dir):
     r = Report()
+    me = f"{first_name.split(' ')[0]} {last_name.split(' ')[0]}".replace(" (", "")
 
     r.title("PROG2002 - Web Development II")
     r.title("Assignment 3: A Complete Dynamic Website", size=13)
@@ -1076,7 +1088,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         "end to end in the video, rather than one person writing all the SQL and the other all the HTML."
     )
     r.table(
-        ["Part of the brief", "Jie Bao (24831941)", "Chengyu Gao (24832054)"],
+        ["Part of the brief", byline("Jie Bao (24831941)", me), byline("Chengyu Gao (24832054)", me)],
         [
             ["1. Database", "Registrations table, venue coordinates, sample data", "Reviewed the schema; booking-date rule"],
             ["2. REST API", "Event CRUD, connection pool, shared validation, delete rule",
@@ -1359,6 +1371,16 @@ CHENGYU_WORK = [
      "carefully - it named the user and the host, and the answer was in those two words. I also wrote "
      "the Postman collection with assertions, including the cases that must fail, so the whole API "
      "can be re-checked in one click."),
+
+    ("What I would do differently.",
+     "I spent too long believing that 'required' on a browser input meant the server would refuse the "
+     "empty value, and the booking-date ceiling is the change that proves it: the attribute only draws "
+     "a tooltip. I would now write the server-side check first and treat the form attribute as a "
+     "kindness to the visitor rather than as a rule. I would also have read the 'Access denied' message "
+     "closely the first time - it named the user and the host, and I had been looking at the "
+     "connection string. What I am most pleased with is that all three refusal reasons for a booking "
+     "return the same status with a different sentence, so the form can print the reason rather than a "
+     "generic failure. I can explain and demonstrate every file listed above."),
 ]
 
 if __name__ == "__main__":
