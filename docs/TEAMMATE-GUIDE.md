@@ -352,10 +352,14 @@ npx ng build --base-href=/admin/
 | 视频链接 | 传 SCU OneDrive，取 **Anyone with the link** |
 | Peer evaluation form | 自己填、**保密**、邮件发给 **tutor（不是 UA）**，标题 `PROG2002_A3_[Team_ID]_[Member_name]` |
 
-### 先写你自己的 GenAI 声明（Brief 要求必须随提交一起交）
+### GenAI 声明在哪里
 
-仓库根目录有个 `GENAI-DECLARATION.md`（署名是我的）。**复制一份，把名字改成你自己的**，
-声明里也要换成你自己用 AI 干了什么。这是**个人**声明，两人各交各的，不能共用一份。
+**在报告里**，不在单独的文件里：每份报告的第 15 节 `GenAI Acknowledgement and Chat Log`
+就是完整声明，含你用了什么、AI 做了什么、哪些是你自己做的（Table 8）。
+
+所以你要做的是：打开属于**你自己**的那份报告
+（`submission/你的用户名A3-report.docx`），把第 15 节里提到的具体工作换成你自己那份，
+确认署名、学号、聊天记录链接都是你的。两人各交各的报告，声明因此自然也是各自的。
 
 ### 打包命令
 
@@ -368,16 +372,13 @@ git archive --format=zip --output=你的用户名A3-adminside.zip HEAD adminside
 
 （`git archive` 直接打包仓库内容，天然不含 `node_modules`、`dist` 和 `.env`。）
 
-再把**你自己那份**声明塞进三个 zip（每个 zip 里都要有一份，老师打开任一个都能看到）：
+报告不进 zip，它和另外几个文件一起直接在 Blackboard 上传：
 
-```bash
-zip -j 你的用户名A3-api.zip        GENAI-DECLARATION.md
-zip -j 你的用户名A3-clientside.zip GENAI-DECLARATION.md
-zip -j 你的用户名A3-adminside.zip  GENAI-DECLARATION.md
-```
-
-Windows 没有 `zip` 命令的话，直接用压缩软件把 `GENAI-DECLARATION.md` 拖进三个
-zip 的根目录也一样。（`-j` 表示只放文件本身，不带路径。）
+| 上传项 | 文件 |
+|---|---|
+| 代码 | 上面三个 zip |
+| 报告 | `你的用户名A3-report.docx`（第 15 节即 GenAI 声明） |
+| Storyboard | `你的用户名A3-storyboard.docx` |
 
 ---
 
