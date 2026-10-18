@@ -12,7 +12,7 @@ import os
 import sys
 from docx import Document
 from docx.shared import Pt, Cm
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
@@ -56,6 +56,21 @@ def shade(cell_or_par, hex_fill):
 
 def keep_with_next(par):
     par.paragraph_format.keep_with_next = True
+
+
+def box_borders(table, color="808080"):
+    """Give a one-cell table a visible frame - used for the storyboard
+    GRAPHICS / TEXT / AUDIO-VIDEO / NOTES boxes."""
+    tblPr = table._tbl.tblPr
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), "6")
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), color)
+        borders.append(el)
+    tblPr.append(borders)
 
 
 class Report:
@@ -151,7 +166,9 @@ class Report:
         # a little air after the block
         self.doc.add_paragraph().paragraph_format.space_after = Pt(0)
 
-    def table(self, headers, rows, widths=None, caption=None):
+    def table(self, headers, rows, widths=None, caption=None,
+              hide_header=False, first_col_bold=False, size=None, tight=False):
+        cell_pt = size or TABLE_PT
         if caption:
             cap = self.doc.add_paragraph()
             cap.paragraph_format.space_before = Pt(6)
@@ -170,15 +187,30 @@ class Report:
         layout = OxmlElement("w:tblLayout")
         layout.set(qn("w:type"), "fixed")
         tblPr.append(layout)
+        if tight:
+            # Squeeze the default cell padding so a long value table still fits
+            # on a single page.
+            margins = OxmlElement("w:tblCellMar")
+            for edge, w in (("top", 10), ("left", 60), ("bottom", 10), ("right", 60)):
+                el = OxmlElement(f"w:{edge}")
+                el.set(qn("w:w"), str(w))
+                el.set(qn("w:type"), "dxa")
+                margins.append(el)
+            tblPr.append(margins)
 
-        for i, head in enumerate(headers):
-            cell = t.rows[0].cells[i]
-            cell.text = ""
-            par = cell.paragraphs[0]
-            par.paragraph_format.line_spacing = 1.0
-            par.paragraph_format.space_after = Pt(2)
-            set_run_font(par.add_run(head), size=TABLE_PT, bold=True)
-            shade(cell, "E8EEF4")
+        if hide_header:
+            # A label/value table (the storyboard's five rows) has no header:
+            # remove the row python-docx created and use the first row of data.
+            t._tbl.remove(t.rows[0]._tr)
+        else:
+            for i, head in enumerate(headers):
+                cell = t.rows[0].cells[i]
+                cell.text = ""
+                par = cell.paragraphs[0]
+                par.paragraph_format.line_spacing = 1.0
+                par.paragraph_format.space_after = Pt(2)
+                set_run_font(par.add_run(head), size=cell_pt, bold=True)
+                shade(cell, "E8EEF4")
 
         for row in rows:
             cells = t.add_row().cells
@@ -186,8 +218,9 @@ class Report:
                 cells[i].text = ""
                 par = cells[i].paragraphs[0]
                 par.paragraph_format.line_spacing = 1.0
-                par.paragraph_format.space_after = Pt(2)
-                set_run_font(par.add_run(str(value)), size=TABLE_PT)
+                par.paragraph_format.space_after = Pt(0 if tight else 2)
+                set_run_font(par.add_run(str(value)), size=cell_pt,
+                             bold=(first_col_bold and i == 0))
 
         if widths:
             scale = 15.7 / sum(widths)
@@ -202,6 +235,73 @@ class Report:
     def save(self, path):
         self.doc.save(path)
         return path
+
+    # ---- storyboard blocks -------------------------------------------------
+    def page_break(self):
+        par = self.doc.add_paragraph()
+        par.paragraph_format.space_after = Pt(0)
+        par.add_run().add_break(WD_BREAK.PAGE)
+
+    def subhead(self, text):
+        """The template's 'Elements:' / 'NOTES' labels, in the unit's own style."""
+        par = self.doc.add_paragraph()
+        pf = par.paragraph_format
+        pf.space_before = Pt(4)
+        pf.space_after = Pt(1)
+        pf.line_spacing = 1.0
+        keep_with_next(par)
+        set_run_font(par.add_run(text), size=11, bold=True)
+        return par
+
+    def frame(self, label, image=None, text=None, bullets=None, width_cm=15.7,
+              image_cm=7.9, body_pt=8.4):
+        """One bordered box: a label in its top-left corner and, under it,
+        an image, a paragraph, or a list of lines - the visual equivalent of
+        the storyboard template's GRAPHICS / TEXT / AUDIO-VIDEO / NOTES frames."""
+        table = self.doc.add_table(rows=1, cols=1)
+        table.autofit = False
+        tblPr = table._tbl.tblPr
+        layout = OxmlElement("w:tblLayout")
+        layout.set(qn("w:type"), "fixed")
+        tblPr.append(layout)
+        box_borders(table)
+        table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+        cell = table.rows[0].cells[0]
+        cell.width = Cm(width_cm)
+        table.columns[0].width = Cm(width_cm)
+
+        par = cell.paragraphs[0]
+        par.paragraph_format.space_before = Pt(1)
+        par.paragraph_format.space_after = Pt(1)
+        par.paragraph_format.line_spacing = 1.0
+        set_run_font(par.add_run(label), size=9.5)
+
+        if image is not None:
+            ip = cell.add_paragraph()
+            ip.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            ip.paragraph_format.space_after = Pt(1)
+            ip.paragraph_format.line_spacing = 1.0
+            ip.add_run().add_picture(image, width=Cm(image_cm))
+            if text:
+                cp = cell.add_paragraph()
+                cp.paragraph_format.space_after = Pt(0)
+                cp.paragraph_format.line_spacing = 1.0
+                set_run_font(cp.add_run(text), size=body_pt)
+        elif bullets:
+            for line in bullets:
+                bp = cell.add_paragraph()
+                bp.paragraph_format.space_after = Pt(0)
+                bp.paragraph_format.line_spacing = 1.0
+                set_run_font(bp.add_run(line), size=body_pt)
+        elif text:
+            for i, line in enumerate(str(text).split("\n")):
+                tp = cell.add_paragraph()
+                tp.paragraph_format.space_after = Pt(0)
+                tp.paragraph_format.line_spacing = 1.0
+                set_run_font(tp.add_run(line), size=body_pt)
+
+        return table
 
     def figure(self, image_path, caption, width_cm=14.5):
         """A screenshot with a numbered caption, kept together on one page."""
@@ -234,6 +334,38 @@ class Report:
 # --------------------------------------------------------------------------
 # the report
 # --------------------------------------------------------------------------
+
+def load_storyboard_data():
+    """The storyboard content, imported from the shared module so section 9
+    here and the standalone storyboard document can never disagree."""
+    try:
+        from storyboard_data import SCREENS
+        return SCREENS
+    except ImportError:  # run from another directory
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from storyboard_data import SCREENS
+        return SCREENS
+
+
+def storyboard_date():
+    try:
+        from storyboard_data import DATE
+        return DATE
+    except ImportError:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from storyboard_data import DATE
+        return DATE
+
+
+def storyboard_frames():
+    """(TEXT_ITEMS, AUDIO_VIDEO, NOTES) keyed by screen id."""
+    try:
+        from storyboard_data import AUDIO_VIDEO, NOTES, TEXT_ITEMS
+    except ImportError:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from storyboard_data import AUDIO_VIDEO, NOTES, TEXT_ITEMS
+    return TEXT_ITEMS, AUDIO_VIDEO, NOTES
+
 
 def build(student_id, last_name, first_name, own_work, filename, base_url, shots_dir):
     r = Report()
@@ -641,115 +773,76 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
     # ---------------------------------------------------------------- 9
     r.h1("9. Interface Storyboard")
     r.p(
-        "Before the two websites were built, the seven screens were storyboarded on the template "
-        "supplied with the unit: one page per screen, with the layout sketched, the interface text "
-        "listed, and the media noted. Each storyboard page carries four frames - GRAPHICS, TEXT, "
-        "AUDIO/VIDEO and NOTES - over the five-row table the template provides (Description, Content, "
-        "Interactions, Media Creation, Navigation)."
+        "Before the two websites were built, every screen was storyboarded on the template supplied "
+        "with the unit. The complete storyboard - all seven screens, exactly as laid out on that "
+        "template - is reproduced in this section so that the report stands on its own."
     )
     r.p(
-        "The seven screens are the four public pages and the three staff pages. Table 5 maps each one "
-        "to the endpoint it depends on; Figures 1 to 7 show them as they are running on the deployed "
-        "site, with the storyboard row for each screen reproduced underneath."
+        "Each screen occupies its own block: the GRAPHICS frame holds the screen as it runs on the "
+        "deployed site, the TEXT frame lists every piece of interface copy, the AUDIO/VIDEO frame "
+        "records what media the screen uses (and, in this project, why there is none), and NOTES "
+        "records the design reasoning. Under them is the five-row table the template requires: "
+        "Description, Content, Interactions, Media Creation and Navigation."
     )
+
+    screens = load_storyboard_data()
+    TEXT_ITEMS, AUDIO_VIDEO, NOTES = storyboard_frames()
+    SB_DATE = storyboard_date()
+    for index, s in enumerate(screens, start=1):
+        # Every screen starts on its own page, including the first one, so
+        # nothing from the overview table can ever bleed onto a screen page.
+        r.page_break()
+
+        h = r.h1(f"Storyboard {s['id']} - {s['title']}")
+        h.paragraph_format.space_before = Pt(0)
+        r.p(f"TITLE: {s['title']}      SCREEN ID: {s['id']}      DATE: {SB_DATE}", space_after=6)
+
+        r.subhead("Elements:")
+        r.frame("GRAPHICS:", image=os.path.join(shots_dir, s["img"]),
+                text="Live screenshot of the deployed page (https://24831941.it.scu.edu.au), taken "
+                     "with headless Chrome. The layout is the design; every value on it comes from "
+                     "the API.",
+                image_cm=6.6 if s["id"] == "S1" else 7.2)
+        r.frame("TEXT:", bullets=TEXT_ITEMS[s["id"]])
+        r.frame("AUDIO/VIDEO:", text=AUDIO_VIDEO[s["id"]])
+
+        r.subhead("NOTES")
+        r.frame("NOTES:", text=NOTES[s["id"]])
+
+        r.table(
+            ["", ""],
+            [[k, s[key]] for k, key in (
+                ("Description:", "desc"),
+                ("Content:", "content"),
+                ("Interactions:", "interactions"),
+                ("Media Creation:", "media"),
+                ("Navigation:", "navigation"),
+            )],
+            widths=[3.2, 12.5],
+            caption=None,
+            hide_header=True,
+            first_col_bold=True,
+            size=8.2,
+            tight=True,
+        )
+
+    # the overview table comes after the screens so it can never split a
+    # screen page; it closes the section as an index of what was covered.
     r.table(
-        ["Screen", "Page", "What it has to do", "Calls"],
+        ["ID", "Screen", "Site", "Who it is for"],
         [
-            ["S1", "Home", "Make a visitor want to attend, and reach an event in one click",
-             "GET /api/events, GET /api/events/past"],
-            ["S2", "Search", "Narrow by date, location and category, any combination",
-             "GET /api/events?date=&location=&category=, GET /api/categories"],
-            ["S3", "Event details", "Everything about one event, plus who is already going",
-             "GET /api/events/:id, GET /api/weather/:eventId"],
-            ["S4", "Register", "Collect the booking and confirm it",
-             "POST /api/registrations"],
-            ["S5", "Staff - event list", "Every event whatever its status, with the doors to create, edit and delete",
-             "GET /api/events?status=all&period=all"],
-            ["S6", "Staff - new event", "Create an event with validation",
-             "POST /api/events, GET /api/organisations, GET /api/categories"],
-            ["S7", "Staff - edit event", "Change an event, and see who it affects",
-             "GET /api/events/:id, PUT /api/events/:id"],
+            ["S1", "Home", "Public", "A first-time visitor deciding whether the site is worth their time"],
+            ["S2", "Search", "Public", "A visitor who already knows the date, place or cause they want"],
+            ["S3", "Event detail", "Public", "A visitor deciding whether to book one particular event"],
+            ["S4", "Register", "Public", "A visitor who has decided and is giving us their details"],
+            ["S5", "Event list", "Staff", "An organiser scanning every event and their status"],
+            ["S6", "New event", "Staff", "An organiser publishing an event that has not existed before"],
+            ["S7", "Edit event", "Staff", "An organiser changing a live event and seeing who it affects"],
         ],
-        widths=[1.4, 3.4, 7.2, 4.0],
-        caption="Table 5 - The seven screens, and the endpoint each one depends on.",
-    )
-
-    screens = [
-        ("S1", "Home", "S1-home.png",
-         "Graphics: hero panel, a grid of eight event cards, then the recently finished grid. "
-         "Text: eyebrow 'Gold Coast - Queensland', headline 'Charity events worth showing up for', "
-         "the 'Find an event' button, and on every card the name, date, time, venue, price, "
-         "'$X raised of $Y goal' and 'N registered'. "
-         "Media: none - the category icons are characters stored in the database, and the colour "
-         "bands and progress bars are CSS computed from API values. "
-         "Navigation: the hero button and the menu go to Search, any card opens S3.",
-         "A broken back end shows immediately as an empty grid with a retry button rather than a "
-         "silent blank page."),
-        ("S2", "Search", "S2-search.png",
-         "Graphics: a filter bar over the same card grid the home page uses, so the two pages cannot "
-         "look or behave differently. "
-         "Text: 'Leave everything blank to see everything that is still coming up', labels Date / "
-         "Location / Category, buttons Search and Clear. "
-         "Media: the category dropdown is filled from GET /api/categories. "
-         "Navigation: reached from the home hero or the menu; a card opens S3.",
-         "Filtering runs on the server, so this page only draws results. 'No search yet' and 'no "
-         "results' are deliberately two different states."),
-        ("S3", "Event details", "S3-detail.png",
-         "Graphics: breadcrumb, the event block, the progress bar, then three panels - who is going, "
-         "expected weather, and who runs it. "
-         "Text: 'Who is going' with each name, ticket count and booking date; 'Expected weather' with "
-         "the icon, description and max/min; the Register button. "
-         "Media: the weather icon is a character mapped from the Open-Meteo code by our own API, not "
-         "an image file. "
-         "Navigation: in from any card; out to S4 through the Register button.",
-         "Social proof sits next to the price because it is the strongest reason to book. The weather "
-         "is a separate request, so a slow third party never delays the page the visitor came for."),
-        ("S4", "Register", "S4-register.png",
-         "Graphics: two columns - the event on the left, the form on the right. "
-         "Text: 'Your details', then first name, last name, email, contact phone, number of tickets, "
-         "date of registration and optional notes; a live 'Total: $X'; the 'Complete registration' "
-         "button. On success the form is replaced by 'You are registered'. "
-         "Media: none - the total is computed from tickets times price. "
-         "Navigation: in from S3 carrying eventId in the query string; after booking, back to S3.",
-         "Drawing this screen changed it: a single column became two, because a visitor needs to see "
-         "the event while filling in the form, not afterwards."),
-        ("S5", "Staff - event list", "S5-admin-list.png",
-         "Graphics: a status filter strip above a table with an action column. "
-         "Text: '+ New event', chips reading All 13 / Active 8 / Past 4 / Suspended 1, column "
-         "headings ID / Event / Date / Location / Status / Ticket / Registrations / Actions, and Edit "
-         "and Delete on each row. "
-         "Media: status badges are coloured text. "
-         "Navigation: in from the public menu; out to S6, S7, or the public site.",
-         "The counts live on the chips because 'how many are suspended?' is the first question staff "
-         "ask, and they are counted from the rows actually on screen."),
-        ("S6", "Staff - new event", "S6-admin-new.png",
-         "Graphics: one long form in three groups, ending with a separate Venue coordinates group. "
-         "Text: required fields marked with an asterisk, and the note 'Used by the Open-Meteo forecast "
-         "on the event page. Leave blank if unknown.' "
-         "Media: the two dropdowns are filled from the same lists the public site shows. "
-         "Navigation: in from S5; Save or Cancel returns to S5.",
-         "Create and edit share one form component, so the two field sets cannot drift apart."),
-        ("S7", "Staff - edit event", "S7-admin-edit.png",
-         "Graphics: the same form, pre-filled, with the registration list underneath. "
-         "Text: the booking count and total tickets, then each booking with name, email, phone and "
-         "date, and the sentence 'Because registrations exist, this event cannot be deleted - suspend "
-         "it instead.' "
-         "Media: none beyond the data. "
-         "Navigation: in from S5; Save or Cancel returns to S5.",
-         "This is where drawing the screens changed the design again: the delete rule moved out of a "
-         "help page and onto this screen, where it is read at the moment it matters."),
-    ]
-
-    for index, (sid, name, image, body, note) in enumerate(screens, start=1):
-        r.figure(os.path.join(shots_dir, image),
-                 f"Figure {index} - {sid}: {name}")
-        r.p(body, space_after=4)
-        r.p(f"Note: {note}", italic=True, space_after=10)
-
-    r.p(
-        "Writing the TEXT frame also caught a wording problem before any code existed: the first "
-        "draft of the register page said 'Purchase tickets' while several events are free. Drawing "
-        "the screen made that inconsistency visible in a way that reading the requirements had not."
+        widths=[1.4, 3.2, 2.0, 9.4],
+        caption="Table 5 - The seven screens the storyboard covers.",
+        size=8.5,
+        tight=True,
     )
 
     # ---------------------------------------------------------------- 10
