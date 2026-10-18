@@ -236,8 +236,45 @@ class Report:
         return t
 
     def save(self, path):
+        # The paragraph mark (pilcrow) of every paragraph inherits the 12pt
+        # Normal style unless told otherwise. Renderers use the mark's size
+        # for the line height, so a 9pt table line with a 12pt mark renders
+        # taller and looks inconsistent. Force every paragraph mark to match
+        # the size of the text in its own paragraph.
+        for par in self.doc.paragraphs:
+            self._match_mark_to_text(par)
+        for t in self.doc.tables:
+            for row in t.rows:
+                for cell in row.cells:
+                    for par in cell.paragraphs:
+                        self._match_mark_to_text(par)
         self.doc.save(path)
         return path
+
+    @staticmethod
+    def _match_mark_to_text(par):
+        sizes = [r.font.size.pt for r in par.runs if r.font.size]
+        names = [r.font.name for r in par.runs if r.font.name]
+        if not sizes:
+            return
+        ppr = par._p.get_or_add_pPr()
+        rpr = ppr.find(qn("w:rPr"))
+        if rpr is None:
+            rpr = OxmlElement("w:rPr")
+            ppr.insert(0, rpr)
+        sz = OxmlElement("w:sz")
+        sz.set(qn("w:val"), str(int(max(sizes) * 2)))
+        rpr.append(sz)
+        szcs = OxmlElement("w:szCs")
+        szcs.set(qn("w:val"), str(int(max(sizes) * 2)))
+        rpr.append(szcs)
+        if names:
+            rfonts = rpr.find(qn("w:rFonts"))
+            if rfonts is None:
+                rfonts = OxmlElement("w:rFonts")
+                rpr.insert(0, rfonts)
+            for attr in ("w:ascii", "w:hAnsi", "w:cs"):
+                rfonts.set(qn(attr), names[0])
 
     # ---- storyboard blocks -------------------------------------------------
     def page_break(self):
