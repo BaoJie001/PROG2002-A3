@@ -15,6 +15,7 @@ Run:  python make_storyboard.py <template> <output>
 """
 
 import copy
+import os
 import sys
 
 from docx import Document
@@ -25,6 +26,58 @@ from docx.oxml.ns import qn
 FONT = "Comic Sans MS"
 BODY = 10
 DATE = "18 October 2026"
+
+# ---- template Elements sections that the five-row table does not cover -----
+TEXT_ITEMS = {
+    "S1": ["Hero: eyebrow 'Gold Coast - Queensland', headline 'Charity events worth showing up for', lead paragraph",
+           "Button: 'Find an event'",
+           "Section headings: 'Upcoming events' / 'Recently finished'",
+           "On every card: event name, date, time, venue, price, one-line summary, '$X raised of $Y goal', 'N registered', charity name"],
+    "S2": ["Title: 'Search events'",
+           "Instruction: 'Leave everything blank to see everything that is still coming up.'",
+           "Field labels: Date / Location / Category",
+           "Buttons: 'Search' / 'Clear'",
+           "Results heading with the number found"],
+    "S3": ["Breadcrumb: 'All events > {category}' and a 'Back to all events' link",
+           "Panels: 'Who is going' (name, tickets, booking date), 'Expected weather' (icon, description, max/min degrees), 'Run by' (charity details)",
+           "Button: 'Register'"],
+    "S4": ["Title: 'Register for an event'; left panel shows the event name, date, time, venue and price per ticket",
+           "Form heading 'Your details'; labels: First name / Last name / Email / Contact phone / Number of tickets / Date of registration / Notes (optional)",
+           "Live 'Total: $X'; button 'Complete registration'",
+           "On success the form is replaced by 'You are registered' plus the booking details and a back link"],
+    "S5": ["Title: 'Events' and one sentence saying what the site can change",
+           "Button: '+ New event'",
+           "Filter chips with live counts: All 13 / Active 8 / Past 4 / Suspended 1",
+           "Column headings: ID / Event / Date / Location / Status / Ticket / Registrations / Actions",
+           "Row buttons: 'Edit' / 'Delete'"],
+    "S6": ["Title: 'New event'",
+           "Required fields marked '*': name, description, organisation, category, status, date, start time, venue, city",
+           "Optional: summary, end time, suburb, ticket price, goal, raised so far, latitude / longitude ('Used by the Open-Meteo forecast on the event page. Leave blank if unknown.')",
+           "Buttons: 'Save changes' / 'Cancel'"],
+    "S7": ["Same form as S6, pre-filled (screenshot: the Twilight 10K)",
+           "Section 'Registrations for this event': booking count, total tickets, then each booking with name, email, phone, tickets and date",
+           "The delete rule in the staff member's own screen: 'Because registrations exist, this event cannot be deleted - suspend it instead.'"],
+}
+
+AUDIO_VIDEO = {
+    "S1": "None. No audio, no video, no images: the icons are characters from the database, the colour bands and progress bar are CSS drawn from API values.",
+    "S2": "None - same card component as the home page; the category icons come from the database.",
+    "S3": "None. The weather icon is a character (emoji) mapped from the Open-Meteo numeric code by our own API, not an image file.",
+    "S4": "None - the page is form and data only. The total is computed live from tickets x price.",
+    "S5": "None. Status badges are coloured text, and the counts are rendered from the rows actually on screen.",
+    "S6": "None. The two selects are filled from GET /api/organisations and GET /api/categories, the same lists the public site shows.",
+    "S7": "None beyond the data itself - the registration list is part of the same API response as the event.",
+}
+
+NOTES = {
+    "S1": "The first screen is already the product: a visitor reaches an event in at most one click, and a broken back end shows immediately as an empty grid with a retry button rather than a silent blank page.",
+    "S2": "Filtering runs on the server, so the page only draws results; 'no search yet' and 'no results' are deliberately two different states. A past date is refused before the request is sent.",
+    "S3": "Social proof sits next to the price because it is the strongest reason to book; the weather is a separate request so a slow forecast never delays the page.",
+    "S4": "Two columns: what you are booking on the left, who you are on the right - reasons before demands. Each field carries its own message instead of one generic alert, and a 409 shows the API's sentence verbatim.",
+    "S5": "Counts live on the filter chips because 'how many suspended?' is the first question staff ask. A blocked delete reports the reason and the alternative (suspend it) rather than failing silently.",
+    "S6": "Create and edit share one form component so the two field sets cannot drift apart; the coordinates are grouped separately and labelled with what they are for.",
+    "S7": "Form and registrations on one screen: the staff member sees who a change affects while making it.",
+}
 
 SCREENS = [
     {
@@ -250,6 +303,45 @@ def set_table_borders(table):
     tblPr.append(borders)
 
 
+def boxed(doc, label, image=None, text=None, width_cm=16.5):
+    """One bordered box with a Comic Sans label in its top-left corner -
+    the visual equivalent of the template's GRAPHICS / TEXT / AUDIO-VIDEO
+    frames. Text uses real line breaks between items."""
+    table = doc.add_table(rows=1, cols=1)
+    set_table_borders(table)
+    cell = table.rows[0].cells[0]
+    cell.width = Cm(width_cm)
+    table.columns[0].width = Cm(width_cm)
+
+    par = cell.paragraphs[0]
+    par.paragraph_format.space_after = Pt(2)
+    r = par.add_run(label)
+    r.font.name = FONT
+    r.font.size = Pt(BODY)
+    r.bold = False
+
+    if image is not None:
+        ip = cell.add_paragraph()
+        ip.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        ip.paragraph_format.space_after = Pt(2)
+        ip.add_run().add_picture(image, width=Cm(10.5))
+        if text:
+            cp = cell.add_paragraph()
+            cp.paragraph_format.space_after = Pt(0)
+            r = cp.add_run(text)
+            r.font.name = FONT
+            r.font.size = Pt(9)
+    elif text:
+        lines = text if isinstance(text, list) else [text]
+        for line in lines:
+            p = cell.add_paragraph()
+            p.paragraph_format.space_after = Pt(0)
+            r = p.add_run(line)
+            r.font.name = FONT
+            r.font.size = Pt(9)
+    doc.add_paragraph().paragraph_format.space_after = Pt(0)
+
+
 def add_screen(doc, screen, img_dir, first=False):
     """Append one screen to the document, mirroring the template's layout."""
     if not first:
@@ -287,9 +379,17 @@ def add_screen(doc, screen, img_dir, first=False):
     par("", space_after=0)
 
     par("Elements:", size=14, bold=True, space_after=2)
-    img_par = par("", space_after=6)
-    img_par.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    img_par.add_run().add_picture(f"{img_dir}/{screen['img']}", width=Cm(12.5))
+
+    # the template's three Elements frames: graphics / text / audio-video
+    boxed(doc, "GRAPHICS:",
+          image=f"{img_dir}/{screen['img']}",
+          text="Live screenshot of the deployed page (https://24831941.it.scu.edu.au), taken with "
+               "headless Chrome. The layout is the design; every value on it comes from the API.")
+    boxed(doc, "TEXT:", text=TEXT_ITEMS[screen["id"]])
+    boxed(doc, "AUDIO/VIDEO:", text=AUDIO_VIDEO[screen["id"]])
+
+    par("NOTES", size=14, bold=True, space_after=2)
+    boxed(doc, "NOTES:", text=NOTES[screen["id"]])
 
     table = doc.add_table(rows=5, cols=2)
     set_table_borders(table)
@@ -303,6 +403,41 @@ def add_screen(doc, screen, img_dir, first=False):
         row.cells[1].width = Cm(12.9)
     for column, width in zip(table.columns, (Cm(3.6), Cm(12.9))):
         column.width = width
+
+
+CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+URLS = {
+    "S1-home.png": "/",
+    "S2-search.png": "/search",
+    "S3-detail.png": "/event/5",
+    "S4-register.png": "/register?eventId=5",
+    "S5-admin-list.png": "/admin/events",
+    "S6-admin-new.png": "/admin/events/new",
+    "S7-admin-edit.png": "/admin/events/5/edit",
+}
+
+
+def take_screenshots(base_url, img_dir):
+    """Re-shoot every screen from the deployed site.
+
+    Headless Chrome rather than a screenshot library: no dependency to install,
+    and --virtual-time-budget makes it wait for the API calls that fill the
+    page. --timeout is not used because it captures the page before the data
+    arrives, which is how the first attempt produced an empty admin list.
+    """
+    import subprocess
+    os.makedirs(img_dir, exist_ok=True)
+    for filename, path in URLS.items():
+        target = os.path.join(img_dir, filename)
+        subprocess.run(
+            [CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
+             "--hide-scrollbars", "--window-size=1280,1250",
+             "--virtual-time-budget=30000",
+             f"--screenshot={target}", base_url + path],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        print(f"  {filename} <- {base_url + path}")
 
 
 def main(template_path, out_path, img_dir):
@@ -321,7 +456,24 @@ def main(template_path, out_path, img_dir):
 
 
 if __name__ == "__main__":
-    template = sys.argv[1] if len(sys.argv) > 1 else "Storyboard-template.docx"
-    out = sys.argv[2] if len(sys.argv) > 2 else "storyboard.docx"
-    imgs = sys.argv[3] if len(sys.argv) > 3 else "screenshots"
+    # Usage:
+    #   python tools/make_storyboard.py                 rebuild from existing screenshots
+    #   python tools/make_storyboard.py --shoot         re-shoot the site, then rebuild
+    #   python tools/make_storyboard.py --shoot --base https://24832054.it.scu.edu.au
+    argv = sys.argv[1:]
+    shoot = "--shoot" in argv
+    base = "https://24831941.it.scu.edu.au"
+    if "--base" in argv:
+        base = argv[argv.index("--base") + 1]
+        argv = argv[:argv.index("--base")] + argv[argv.index("--base") + 2:]
+    positional = [a for a in argv if a != "--shoot"]
+
+    template = positional[0] if len(positional) > 0 else "tools/Storyboard-template.docx"
+    out = positional[1] if len(positional) > 1 else "submission/storyboard-giving-coast.docx"
+    imgs = positional[2] if len(positional) > 2 else "submission/screenshots"
+
+    if shoot:
+        print(f"re-shooting 7 screens from {base}")
+        take_screenshots(base, imgs)
+
     main(template, out, imgs)
