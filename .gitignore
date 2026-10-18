@@ -25,3 +25,6 @@ tools/rewrite-author.sh
 # page previews exported while checking the report
 submission/_p*.pdf
 submission/_preview_*.pdf
+
+# tutor template copy used by make_storyboard.py
+tools/Storyboard-template.docx
