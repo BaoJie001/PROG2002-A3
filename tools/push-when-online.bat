@@ -4,7 +4,7 @@ REM 推的是 D:\PROG2002-A3 主仓库（历史已修正，和远程同步）。
 REM 失败会自动重试 10 次，每次等 15 秒，中途网络恢复就能一次成功。
 REM 如果要求登录，浏览器里请用 Carlos-001-max 授权。
 
-cd /d D:\PROG2002-A3-teammate
+cd /d D:\PROG2002-A3
 
 echo.
 echo === 当前身份 ===
