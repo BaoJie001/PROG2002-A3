@@ -1373,10 +1373,12 @@ CHENGYU_WORK = [
      "can be re-checked in one click."),
 
     ("What I would do differently.",
-     "I spent too long believing that 'required' on a browser input meant the server would refuse the "
-     "empty value, and the booking-date ceiling is the change that proves it: the attribute only draws "
-     "a tooltip. I would now write the server-side check first and treat the form attribute as a "
-     "kindness to the visitor rather than as a rule. I would also have read the 'Access denied' message "
+     "I spent too long believing that a max attribute on a browser input meant the server would refuse "
+     "the wrong value. The booking-date ceiling is the change that proves it: I removed the attribute "
+     "in the browser's inspector, submitted a booking dated after the event, and it was accepted. The "
+     "server checks the ceiling too now, and I would write that check first next time and treat the "
+     "form attribute as a kindness to the visitor rather than as a rule. I would also have read the "
+     "'Access denied' message "
      "closely the first time - it named the user and the host, and I had been looking at the "
      "connection string. What I am most pleased with is that all three refusal reasons for a booking "
      "return the same status with a different sentence, so the form can print the reason rather than a "
