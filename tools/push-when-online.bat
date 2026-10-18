@@ -1,9 +1,11 @@
 @echo off
 REM 网络一通，双击这个脚本就能把本地未上传的提交推到 GitHub。
+REM 推的是 D:\PROG2002-A3-teammate 这个克隆（身份已经是 Chengyu Gao），
+REM 和 10/16 那次成功推送走的是同一条路。
 REM 失败会自动重试 10 次，每次等 15 秒，中途网络恢复就能一次成功。
-REM 推送时的浏览器授权请用 Carlos-001-max 登录。
+REM 如果要求登录，浏览器里请用 Carlos-001-max 授权。
 
-cd /d D:\PROG2002-A3
+cd /d D:\PROG2002-A3-teammate
 
 echo.
 echo === 当前身份 ===
