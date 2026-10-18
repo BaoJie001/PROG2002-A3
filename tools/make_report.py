@@ -167,7 +167,8 @@ class Report:
         self.doc.add_paragraph().paragraph_format.space_after = Pt(0)
 
     def table(self, headers, rows, widths=None, caption=None,
-              hide_header=False, first_col_bold=False, size=None, tight=False):
+              hide_header=False, first_col_bold=False, size=None, tight=False,
+              first_col_shade=False):
         cell_pt = size or TABLE_PT
         if caption:
             cap = self.doc.add_paragraph()
@@ -221,6 +222,8 @@ class Report:
                 par.paragraph_format.space_after = Pt(0 if tight else 2)
                 set_run_font(par.add_run(str(value)), size=cell_pt,
                              bold=(first_col_bold and i == 0))
+                if first_col_shade and i == 0:
+                    shade(cells[i], "E8EEF4")
 
         if widths:
             scale = 15.7 / sum(widths)
@@ -254,7 +257,7 @@ class Report:
         return par
 
     def frame(self, label, image=None, text=None, bullets=None, width_cm=15.7,
-              image_cm=7.9, body_pt=8.4):
+              image_cm=7.9, body_pt=8.3):
         """One bordered box: a label in its top-left corner and, under it,
         an image, a paragraph, or a list of lines - the visual equivalent of
         the storyboard template's GRAPHICS / TEXT / AUDIO-VIDEO / NOTES frames."""
@@ -275,7 +278,7 @@ class Report:
         par.paragraph_format.space_before = Pt(1)
         par.paragraph_format.space_after = Pt(1)
         par.paragraph_format.line_spacing = 1.0
-        set_run_font(par.add_run(label), size=9.5)
+        set_run_font(par.add_run(label), size=10, bold=True)
 
         if image is not None:
             ip = cell.add_paragraph()
@@ -795,7 +798,16 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
 
         h = r.h1(f"Storyboard {s['id']} - {s['title']}")
         h.paragraph_format.space_before = Pt(0)
-        r.p(f"TITLE: {s['title']}      SCREEN ID: {s['id']}      DATE: {SB_DATE}", space_after=6)
+
+        # one compact meta line: bold labels, normal values, must not wrap
+        meta = r.doc.add_paragraph()
+        meta.paragraph_format.space_after = Pt(6)
+        meta.paragraph_format.line_spacing = 1.0
+        for label, value, gap in (("TITLE: ", s["title"], "    "),
+                                  ("SCREEN ID: ", s["id"], "    "),
+                                  ("DATE: ", SB_DATE, "")):
+            set_run_font(meta.add_run(label), size=10.5, bold=True)
+            set_run_font(meta.add_run(value + gap), size=10.5)
 
         r.subhead("Elements:")
         r.frame("GRAPHICS:", image=os.path.join(shots_dir, s["img"]),
@@ -822,7 +834,8 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
             caption=None,
             hide_header=True,
             first_col_bold=True,
-            size=8.2,
+            first_col_shade=True,
+            size=8.3,
             tight=True,
         )
 
