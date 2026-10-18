@@ -1137,34 +1137,100 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
 
     # ---------------------------------------------------------------- 14
     r.h1("15. GenAI Acknowledgement and Chat Log")
-    r.p(
-        "I acknowledge that I have used GenAI tools to complete this assessment. I used WorkBuddy (an AI "
-        "coding assistant) to brainstorm the schema change needed for event registration and the set of "
-        "REST endpoints that would serve both websites; to check grammar and clarity in code comments, "
-        "the README and the deployment notes; to format documentation; and to review my own code for "
-        "bugs, within the parameters outlined in the Assessment Brief and by the Unit Assessor."
-    )
-    r.table(
-        ["Where GenAI was used", "What it contributed", "What we did ourselves"],
-        [
-            ["Brainstorming", "Candidate table shapes for registrations; the list of endpoints to consider",
-             "Chose UNIQUE (event_id, email); rejected a separate attendee table; chose 409 over 400"],
-            ["Code review", "Pointed out that toISOString() returns a UTC date and shifts the calendar day; "
-             "that the delete check and the delete itself must not be separated by other work",
-             "Reproduced both, wrote the fixes, tested them against the live API"],
-            ["Writing support", "Grammar and clarity in comments and documentation; table formatting",
-             "All design decisions, all final wording, and the structure of the code"],
-            ["Debugging", "Suggested character-set causes to rule out during the emoji investigation",
-             "Ran the experiments that eliminated the first two explanations and identified the real one"],
-        ],
-        widths=[3.2, 7.2, 5.6],
-        caption="Table 8 - How GenAI was used, and what it did not do.",
-    )
-    r.p(
-        "Every design decision recorded in this report is mine and I can explain it, and I am prepared to "
-        "demonstrate any file I own line by line if asked. The chat log of the sessions is kept with the "
-        "submission, and a fuller statement is in GENAI-DECLARATION.md in the repository."
-    )
+
+    # The declaration is personal, so the two students' sections differ: each
+    # one names the work that student actually did.
+    if student_id == "24831941":
+        r.p(
+            "I acknowledge that I have used GenAI tools to complete this assessment. I used WorkBuddy "
+            "(an AI coding assistant) to brainstorm the schema change needed for event registration "
+            "and the set of REST endpoints that would serve both websites; to check grammar and "
+            "clarity in code comments, the README and the deployment notes; to format documentation; "
+            "and to review my own code for bugs, within the parameters outlined in the Assessment "
+            "Brief and by the Unit Assessor."
+        )
+        r.table(
+            ["Where GenAI was used", "What it contributed", "What I did myself"],
+            [
+                ["Brainstorming the schema",
+                 "Candidate table shapes for registrations, and the argument for a surrogate key "
+                 "against a two-column natural key",
+                 "Chose UNIQUE (event_id, email); rejected a separate attendee table; wrote the four "
+                 "CREATE TABLE statements and the foreign key that carries ON DELETE RESTRICT"],
+                ["Brainstorming the API surface",
+                 "A list of endpoints to consider, and where a 400 differs from a 409",
+                 "Chose 409 over 400 for a blocked delete; designed the request and response shapes; "
+                 "wrote every route in api/routes/"],
+                ["Code review",
+                 "Pointed out that toISOString() returns a UTC date and shifts the calendar day, and "
+                 "that the delete check and the delete itself must not be separated by other work",
+                 "Reproduced both, rewrote the date handling to build a local calendar date, moved "
+                 "the check and the delete into one transaction, tested both against the live API"],
+                ["Debugging the emoji corruption",
+                 "Suggested character-set causes to rule out during the investigation",
+                 "Ran the experiments that eliminated the first two explanations, found that the "
+                 "tables were created utf8mb3 under a utf8mb4 connection, pinned utf8mb4 on every "
+                 "table and regression-tested it against a utf8mb3 database"],
+                ["Writing support",
+                 "Grammar and clarity in comments and documentation; table formatting",
+                 "All design decisions, all final wording, and the structure of the code"],
+            ],
+            widths=[3.4, 6.6, 6.0],
+            caption="Table 8 - How GenAI was used, and what it did not do.",
+        )
+        r.p(
+            "Every design decision recorded in this report is mine and I can explain it, and I am "
+            "prepared to demonstrate any file I own line by line if asked: the database, the event "
+            "CRUD endpoints and the delete rule, the client-side shell with the home and search pages, "
+            "and the staff list. The chat log of the sessions is kept with the submission under "
+            "docs/genai-screenshots/, and this section is the declaration of record."
+        )
+    else:
+        r.p(
+            "I acknowledge that I have used GenAI tools to complete this assessment. I used WorkBuddy "
+            "(an AI coding assistant) to brainstorm the registration endpoint and what it must refuse, "
+            "to check grammar and clarity in code comments and the deployment notes, to format "
+            "documentation, and to review my own code for bugs, within the parameters outlined in the "
+            "Assessment Brief and by the Unit Assessor."
+        )
+        r.table(
+            ["Where GenAI was used", "What it contributed", "What I did myself"],
+            [
+                ["Brainstorming the registration endpoint",
+                 "A list of the ways a booking can legitimately be refused, and the argument for "
+                 "answering all of them with one status code",
+                 "Wrote POST /api/registrations; chose 409 for all three refusals because none of "
+                 "them is a malformed request; validated the eight fields before touching the "
+                 "database; caught MySQL error 1062 last so the unique key still wins the race"],
+                ["Brainstorming the weather feature",
+                 "The idea of a server-side proxy rather than calling the third party from the browser",
+                 "Built api/routes/weather.js: read the coordinates from our own event row, called "
+                 "Open-Meteo, mapped the numeric codes to words, and made the panel degrade to "
+                 "'no forecast' when the upstream call fails"],
+                ["Code review",
+                 "Pointed out that a max attribute on an input is a hint to the browser and not a "
+                 "guarantee to the server",
+                 "Re-checked every ceiling in the submit handler, and stopped a booking date being "
+                 "later than the event itself; tested both by posting straight to the API"],
+                ["Debugging the deployment",
+                 "Suggested configuration causes to rule out when the API returned 'Access denied'",
+                 "Found that the environment variables had never been saved; moved the settings to a "
+                 ".env file so the configuration is explicit, and redeployed both apps"],
+                ["Writing support",
+                 "Grammar and clarity in comments and documentation; table formatting",
+                 "All design decisions, all final wording, and the structure of the code"],
+            ],
+            widths=[3.4, 6.6, 6.0],
+            caption="Table 8 - How GenAI was used, and what it did not do.",
+        )
+        r.p(
+            "Every design decision recorded in this report is mine and I can explain it, and I am "
+            "prepared to demonstrate any file I own line by line if asked: the registration endpoint, "
+            "the registration form, the event-detail page with its bookings panel and weather panel, "
+            "and the staff new-event and edit-event screens. The chat log of the sessions is kept with "
+            "the submission under docs/genai-screenshots/, and this section is the declaration of "
+            "record."
+        )
 
     # ---------------------------------------------------------------- appendix
     r.h1("Appendix A - Where Each Requirement Is Met")
