@@ -1,52 +1,59 @@
 # Chengyu：在这台电脑上把代码推送到 GitHub
 
 > 情境：包杰和 Chengyu 共用这一台电脑，仓库在 `D:\PROG2002-A3`，
-> 本地有 22 个提交还没上传到 GitHub。Chengyu 的 GitHub 账号
+> 本地有 23 个提交还没上传到 GitHub。Chengyu 的 GitHub 账号
 > `Carlos-001-max` 已经是这个仓库的协作者（有 push 权限），
-> 所以**直接在这台电脑上就能推送**，不用换机器、不用打包。
+> 所以**直接在这台电脑上就能推送**，不用换机器、不用重新 clone。
 
 ---
 
-## 你要做的事，一共 5 步
+## 先说清楚：这台电脑现在是谁的身份
+
+| 项目 | 现在的值 | 要改成 |
+|---|---|---|
+| `git config user.name`（仓库级） | `BaoJie001` | `Chengyu Gao` |
+| `git config user.email`（仓库级） | `1822675871@qq.com` | 你自己的 GitHub 邮箱 |
+| `gh auth status` | `BaoJie001` | `Carlos-001-max` |
+
+所以直接 `git push` 是能成功的（协作者有权限），但推送凭据用的是包杰的账号。
+下面把它换成你自己的。
+
+---
+
+## 一共 5 步
 
 ### 第 1 步：换成本人的 Git 身份
-
-这台电脑全局的 Git 身份是包杰的，所以你要先改成自己的，
-否则你之后做的提交会记在包杰名下。
 
 打开 **Git Bash**（开始菜单搜 "Git Bash"），执行：
 
 ```bash
 cd /d/PROG2002-A3
 
-# 只改这个仓库，不动全局设置
+# 只改这个仓库，不动全局设置（全局是包杰的，改了会影响他）
 git config user.name "Chengyu Gao"
 git config user.email "你的GitHub邮箱"
 ```
 
-查一下改对了没有：
+查一下：
 
 ```bash
 git config user.name
 git config user.email
 ```
 
-> 邮箱建议用你 GitHub 账号 `Carlos-001-max` 绑定的那个，
-> 这样提交头像和作者信息才认得出是你。
+> 邮箱用你 `Carlos-001-max` 账号绑定的那个。不想公开真实邮箱，
+> 可以用 GitHub 给你的 `24832054+Carlos-001-max@users.noreply.github.com` 形式。
 
 ---
 
 ### 第 2 步：把 GitHub 凭据换成你的
-
-这台电脑现在登录的是包杰的 GitHub 账号，直接推会记成包杰。
-先把自己登录上去：
 
 ```bash
 gh auth logout
 gh auth login
 ```
 
-然后按提示选：
+按提示选：
 
 | 提示 | 选什么 |
 |---|---|
@@ -55,36 +62,41 @@ gh auth login
 | Authenticate Git with your GitHub credentials? | **Yes** |
 | How would you like to authenticate? | **Login with a web browser** |
 
-它会显示一个 **8 位一次性代码**（例如 `A1B2-C3D4`），
-按回车会自动打开浏览器 → 粘贴代码 → 点 Authorize。
+它会显示一个 **8 位一次性代码**（例如 `A1B2-C3D4`），按回车打开浏览器 →
+粘贴代码 → 点 **Authorize**。
 
-登录成功后再确认一次：
+确认：
 
 ```bash
 gh auth status
 ```
 
-应该看到 `Logged in to github.com account Carlos-001-max`。
+要看到 `Logged in to github.com account Carlos-001-max`。
+
+> ⚠️ 这一步做完之后，包杰在这台电脑上就不能直接推送了。
+> 他要用的时候执行一次 `gh auth logout` + `gh auth login` 换回来。
 
 ---
 
-### 第 3 步：做一次属于你自己的提交（建议，不是必须）
+### 第 3 步：做一次属于你自己的提交（建议，但不是必须）
 
-这一步是为了让 GitHub 的历史里留下你今天的工作痕迹，
-而不是只有包杰的提交。挑一个真实的小改动，比如：
+这一步是为了让仓库历史里留下你今天的真实工作痕迹。挑一个**只有你能做**的小改动：
 
-- 打开 `README.md`，把 "Team members" 那段按实际情况补全；
-- 或者修一句你负责的代码里的注释。
-
-改完之后：
+- 打开 `docs/teamwork-plan.md`，Member B 那一行的 Student ID / Cohort / Team ID
+  如果还是 `_(fill in)_`，填上你的真实信息（学号 24832054）；
+- 或者打开 `README.md`，把 "Team members" 那段补全成两个人的名字和学号。
 
 ```bash
-git status              # 看改了什么
-git add README.md       # 换成你实际改的文件
-git commit -m "Docs: complete the team section in the README"
+git status                       # 确认只改了你预期的那一个文件
+git add docs/teamwork-plan.md    # 换成你实际改的文件
+git commit -m "B12: fill in my student id, cohort and team id
+
+The work plan still had placeholders in the Member B column. Only I know
+these three values, so this commit has to come from me."
+git log -1 --pretty=format:"%an <%ae>%n%s"
 ```
 
-`git log -1` 确认作者是你自己（`Chengyu Gao`）。
+作者必须显示 `Chengyu Gao`，不是 `BaoJie001`。
 
 ---
 
@@ -94,14 +106,16 @@ git commit -m "Docs: complete the team section in the README"
 git push origin master
 ```
 
-正常会看到类似输出：
+正常输出大概是这样：
 
 ```
-Enumerating objects: ..., done.
-Writing objects: 100% (…/…), done.
+Enumerating objects: 120, done.
+Writing objects: 100% (120/120), done.
 To https://github.com/BaoJie001/PROG2002-A3.git
-   xxxxxxx..be56a5c  master -> master
+   ce4b0d8..66a1d38  master -> master
 ```
+
+23 个提交 + 你这个新提交会一起上去。
 
 ---
 
@@ -113,8 +127,13 @@ git status
 
 应该显示 `Your branch is up to date with 'origin/master'.`
 
-再到浏览器打开 https://github.com/BaoJie001/PROG2002-A3/commits/master ，
-确认能看到全部提交，并且最新几条里有你的名字。
+然后浏览器打开：
+
+```
+https://github.com/BaoJie001/PROG2002-A3/commits/master
+```
+
+应该能看到今天日期下面有 `Chengyu Gao` 的提交。
 
 ---
 
@@ -122,25 +141,17 @@ git status
 
 | 报错 | 原因 | 怎么办 |
 |---|---|---|
-| `Permission denied (403)` | 用的不是你的账号 | 回到第 2 步重新 `gh auth login` |
-| `failed to push some refs` / `rejected` | 远程有别人推过的新提交 | 先 `git pull --rebase origin master`，再 `git push` |
-| `Author identity unknown` | 第 1 步没做 | 回到第 1 步设 `user.name` / `user.email` |
-| 推送卡住不动 | 网络慢 | 等一会儿；实在不行 `git config --global http.postBuffer 524288000` 后重试 |
-| `Updates were rejected because the remote contains work` | 远程和本地分叉了 | `git pull --rebase origin master` 后再推 |
+| `Permission denied (403)` | 登录的不是你的账号 | 回第 2 步重新 `gh auth login` |
+| `failed to push some refs` / `rejected` | 远程有别人新推的提交 | `git pull --rebase origin master` 后再 `git push` |
+| `Author identity unknown` | 第 1 步没做 | 回第 1 步设 `user.name` / `user.email` |
+| 推送卡住不动 | 网络慢或凭据弹窗被挡住 | 等一会儿；必要时 `git config --global http.postBuffer 524288000` 重试 |
+| `refusing to allow an OAuth App to ...` | 包杰当初登录时没给 workflow 权限 | 不影响，仓库里没有 workflow 文件 |
+| 推送被拒且提示 email privacy | GitHub 开了 "Block command line pushes that expose my email" | GitHub → Settings → Emails，用 `@users.noreply.github.com` 地址作 `user.email` |
 
 ---
 
 ## 推完之后
 
-1. 告诉包杰「推上去了」，让他核对一下；
-2. 回到 Blackboard 交作业的清单（三个 zip + 报告 + 视频链接 + peer evaluation）。
-
----
-
-## 一件事要确认
-
-`git config user.email` 如果你填的是私人邮箱而 GitHub 开了
-"Block command line pushes that expose my email"，推送会被拒。
-解决办法：在 GitHub → Settings → Emails 里，把
-**Keep my email addresses private** 关掉，或者用它给的
-`xxxxx@users.noreply.github.com` 地址作为 `user.email`。
+1. 告诉包杰「推上去了」，让他看眼 commits 页面；
+2. 包杰那边如果要继续用这台电脑推东西，记得让他把 `gh` 切回自己；
+3. 回到 Blackboard 提交清单（三个 zip + 报告 + storyboard + 视频链接 + peer evaluation）。
