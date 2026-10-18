@@ -253,11 +253,11 @@ class Report:
         pf.space_after = Pt(1)
         pf.line_spacing = 1.0
         keep_with_next(par)
-        set_run_font(par.add_run(text), size=11, bold=True)
+        set_run_font(par.add_run(text), size=12, bold=True)
         return par
 
     def frame(self, label, image=None, text=None, bullets=None, width_cm=15.7,
-              image_cm=7.9, body_pt=8.3):
+              image_cm=7.4, body_pt=8.5):
         """One bordered box: a label in its top-left corner and, under it,
         an image, a paragraph, or a list of lines - the visual equivalent of
         the storyboard template's GRAPHICS / TEXT / AUDIO-VIDEO / NOTES frames."""
@@ -806,15 +806,15 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
         for label, value, gap in (("TITLE: ", s["title"], "    "),
                                   ("SCREEN ID: ", s["id"], "    "),
                                   ("DATE: ", SB_DATE, "")):
-            set_run_font(meta.add_run(label), size=10.5, bold=True)
-            set_run_font(meta.add_run(value + gap), size=10.5)
+            set_run_font(meta.add_run(label), size=11, bold=True)
+            set_run_font(meta.add_run(value + gap), size=11)
 
         r.subhead("Elements:")
         r.frame("GRAPHICS:", image=os.path.join(shots_dir, s["img"]),
                 text="Live screenshot of the deployed page (https://24831941.it.scu.edu.au), taken "
                      "with headless Chrome. The layout is the design; every value on it comes from "
                      "the API.",
-                image_cm=6.6 if s["id"] == "S1" else 7.2)
+                image_cm=6.0 if s["id"] == "S1" else 6.8)
         r.frame("TEXT:", bullets=TEXT_ITEMS[s["id"]])
         r.frame("AUDIO/VIDEO:", text=AUDIO_VIDEO[s["id"]])
 
@@ -835,7 +835,7 @@ def build(student_id, last_name, first_name, own_work, filename, base_url, shots
             hide_header=True,
             first_col_bold=True,
             first_col_shade=True,
-            size=8.3,
+            size=8.5,
             tight=True,
         )
 
