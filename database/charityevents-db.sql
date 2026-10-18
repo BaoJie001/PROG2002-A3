@@ -59,7 +59,7 @@ CREATE TABLE organisations (
     contact_phone   VARCHAR(50),
     website         VARCHAR(255),
     logo_icon       VARCHAR(10)      -- emoji shown in place of a logo image
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
 -- categories
@@ -71,7 +71,7 @@ CREATE TABLE categories (
     description VARCHAR(255),
     icon        VARCHAR(10),         -- emoji shown next to the category name
     image_url   VARCHAR(255)         -- banner image used on the event cards
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
 -- events
@@ -117,7 +117,7 @@ CREATE TABLE events (
     CONSTRAINT chk_price_not_negative  CHECK (ticket_price  >= 0),
     CONSTRAINT chk_goal_not_negative   CHECK (goal_amount   >= 0),
     CONSTRAINT chk_raised_not_negative CHECK (raised_amount >= 0)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
 -- registrations                                                  (NEW IN A3)
@@ -151,7 +151,7 @@ CREATE TABLE registrations (
     CONSTRAINT chk_tickets_positive CHECK (tickets > 0),
     CONSTRAINT chk_tickets_sane     CHECK (tickets <= 50),
     CONSTRAINT chk_email_shape      CHECK (email LIKE '%_@%_._%')
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Indexes: the home page filters by date/category/city, the event page and the
 -- admin list both look registrations up by event, and the event page sorts
