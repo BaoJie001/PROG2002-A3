@@ -15,6 +15,9 @@
  *      checks first so the user gets a friendly 409 instead of a raw SQL error.
  *   2. You cannot register for an event that is suspended or already over.
  *      A hidden or finished event has no business taking bookings.
+ *   3. The booking cannot be dated after the event was held.
+ *      The form sets a max attribute on the date input, but that is only a
+ *      hint to the browser, so the same ceiling is enforced here.
  * ---------------------------------------------------------------------------
  */
 
@@ -198,6 +201,24 @@ router.post('/', async (req, res) => {
       return res.status(409).json({
         error: true,
         message: 'This event has already finished and can no longer be booked.',
+      });
+    }
+
+    // --- is the booking dated after the event itself? ---------------------
+    // The form sets a max attribute on the date input, but that is a hint to
+    // the browser: it can be edited out of the DOM, and it does not exist at
+    // all for a request sent straight to the API. So the ceiling is enforced
+    // here as well, where it cannot be bypassed.
+    if (registrationDate > eventDate) {
+      return res.status(400).json({
+        error: true,
+        message: 'The booking date cannot be later than the date of the event itself.',
+        fields: [
+          {
+            field: 'registration_date',
+            message: `Pick a date on or before ${eventDate}.`,
+          },
+        ],
       });
     }
 
