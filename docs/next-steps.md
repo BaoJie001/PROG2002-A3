@@ -1,74 +1,88 @@
-# A3 — What to do now that the invitation is accepted
+# A3 — submission checklist
 
-Short version: **the code is finished and working**. What is left is evidence
-of teamwork (GitHub), deployment, the two videos, the two peer evaluation
-forms, and the Blackboard submission. None of that can be done by someone else
-on your behalf — the brief marks it as individual work.
+Checked on 18 October 2026 against `PROG2002 A3 Assessment Brief.pdf` and the
+UA's reminder email. Everything that can be finished on this machine is
+finished; what is left needs your own hands (video, peer evaluation form,
+Blackboard upload).
 
-> ⚠️ **Check the due date first.** The brief says *12 October 2026, 11:59 pm*.
-> Today is 16 October. Open Blackboard and confirm the real due date (and any
-> extension) before you plan anything else. If it has passed, submit today.
+Read this top to bottom before you log into Blackboard.
 
 ---
 
-## 1. Do this today (both of you)
+## 1. What is already done
 
-| # | Who | Action | Why the brief wants it |
-|---|---|---|---|
-| 1 | Jie | Confirm the Blackboard due date and your **Team ID** | Peer evaluation email title needs `PROG2002_A3_[Team_ID]_[Member_name]` |
-| 2 | Jie | Email the **UA** (not the tutor) with both student IDs, names and cohort | "Once your team is formed, inform UA by sending an email" |
-| 3 | Jie | Invite your **tutor/marker** as a collaborator on the repository | "Ensure it is accessible. You may invite your marker to be a collaborator" |
-| 4 | Chengyu | Accept the invitation (done) → `git clone` → make **your own** commits | The 15% teamwork mark is evidenced by two authors in the history |
-| 5 | Both | Check the SCU username prefix on the zip files (`JieBaoA3-…`) | Deliverables are `usernameA3-clientside.zip` etc. |
+| Item | State |
+|---|---|
+| Database: `registrations` table, 16 sample rows, one SQL file | ✅ |
+| API: full CRUD, 409 rules, weather proxy, health check | ✅ |
+| Client site: Home, Search, Event details, Register | ✅ |
+| Admin site: list, new, edit, delete, menu on every page | ✅ |
+| Both sites built with Angular 22 + TypeScript (bonus) | ✅ |
+| Open-Meteo weather API (bonus) | ✅ |
+| Jie's deployment — https://24831941.it.scu.edu.au/ | ✅ live, `database: connected` |
+| Chengyu's deployment — https://24832054.it.scu.edu.au/ | ✅ live, `database: connected` |
+| GitHub — 31 commits, 13 of them Chengyu's, three calendar days | ✅ |
+| Three zips per student, with their own GenAI declaration | ✅ |
+| **A3 report** (`submission/jbao14A3-report.docx`, `cgao15A3-report.docx`) | ✅ written, 15 pages |
 
 ---
 
-## 2. Chengyu's first commits (do them on two different days)
+## 2. What each of you still has to do
 
-Hand him **`docs/teammate-quickstart.md`** — it is a five-minute card that
-needs nothing but Git. The idea: the code is already in the repository, so
-re-adding his own files would produce `nothing to commit`. What only he can
-supply is *his own information*:
+| # | Task | Why |
+|---|---|---|
+| 1 | Record **your own** video, ≤ 15 min, in English, about **your half** | Brief: "focus on your individual contributions" |
+| 2 | Upload the video to SCU OneDrive and make a share link | Brief: "Upload your video to your SCU OneDrive and create a sharable link" |
+| 3 | Fill in **your own** peer evaluation form and email it to the **tutor** | Subject must be `PROG2002_A3_[Team_ID]_[Member_name]`. Confidential — do not send your teammate's form for them |
+| 4 | Read your copy of the report and make it sound like you | It is attached to your submission and you may be interviewed on it |
+| 5 | Push the pending commits (below) | The report, the guides and the charset fix are committed locally but not yet on GitHub |
+| 6 | Submit on Blackboard: 3 zips + GitHub link + video link + peer evaluation + **report** | Brief §Deliverables, plus the UA's "attach it to your submission" |
 
-* **Day 1** — fill his Student ID, Cohort and Team ID into the Member B column
-  of `docs/teamwork-plan.md`, commit, push.
-* **Day 2** (after deploying) — fill his own cPanel URLs into
-  `docs/deployment.md`, commit, push.
+The UA has confirmed that **no team-formation email** and **no tutor invitation
+to the repository** are needed, so skip both — the repository just has to be
+reachable by the marker when they ask.
 
-Two commits on two different days is exactly what "regularly committing" looks
-like to a marker. Setup in full:
+---
+
+## 3. Push the pending commits
 
 ```bash
-git clone https://Carlos-001-max@github.com/BaoJie001/PROG2002-A3.git PROG2002-A3-teammate
-cd PROG2002-A3-teammate
-git config --local user.name  "Chengyu Gao"
-git config --local user.email "190163452+Carlos-001-max@users.noreply.github.com"
+cd D:/PROG2002-A3
+git status                # should say "working tree clean"
+git log --oneline -5      # four commits that GitHub does not have yet
+git push origin master
 ```
 
-Full step-by-step instructions: `docs/TEAMMATE-GUIDE.md` (updated — step 7 now
-explains why re-committing existing files will not work).
+If the push is rejected with *"Updates were rejected because the remote
+contains work that you do not have locally"*, Chengyu has pushed in the
+meantime — do not force anything:
+
+```bash
+git pull --rebase origin master
+git push origin master
+```
 
 ---
 
-## 3. Then, individually (each of you, on your own account)
+## 4. What goes on Blackboard
 
-| Order | Task | Guide |
+| # | File / link | For |
 |---|---|---|
-| 1 | Deploy the API + both sites to **your own** SCU cPanel | `docs/deployment.md` (admin site builds with `--base-href=/admin/`) |
-| 2 | Record **your** video ≤ 15 min about **your** half | `docs/video-script.md` |
-| 3 | Build **your** three zip files with your own username prefix | `submission/` |
-| 4 | Email **your** peer evaluation form to the **tutor** (not the UA), titled `PROG2002_A3_[Team_ID]_[Member_name]` | `docs/peer-evaluation-draft.md` + the form in the Assessment 3 folder |
-| 5 | Submit to Blackboard: 3 zips + GitHub link + video link + peer evaluation | brief §Deliverables |
+| 1 | `jbao14A3-clientside.zip` / `cgao15A3-clientside.zip` | Public site source |
+| 2 | `…-adminside.zip` | Admin site source |
+| 3 | `…-api.zip` | API source + the SQL file |
+| 4 | `https://github.com/BaoJie001/PROG2002-A3` | Repository link (private; invite the marker if asked) |
+| 5 | OneDrive video link | Your demo |
+| 6 | Peer evaluation form | Emailed to the tutor, and attached if Blackboard asks |
+| 7 | `jbao14A3-report.docx` / `cgao15A3-report.docx` | The report the UA asked us to attach |
 
-Nothing in step 1–4 may be shared or copied from your teammate: the brief says
-each student deploys to their own cPanel, and the peer evaluation is
-confidential.
+The zips are the same code for both of you — that is allowed, the brief only
+requires that each of you deploys to your own cPanel and writes your own
+report and video.
 
 ---
 
-## 4. Compliance check against the brief
-
-Checked on 16 October 2026 against `PROG2002 A3 Assessment Brief.pdf`.
+## 5. Compliance check against the brief
 
 ### Part 1 — Database (5%)
 
@@ -77,72 +91,78 @@ Checked on 16 October 2026 against `PROG2002 A3 Assessment Brief.pdf`.
 | New table recording which event a user registered for | `registrations` | ✅ |
 | Unique id, user details, registration date, contact, tickets, event link | `registration_id, first_name, last_name, email, phone, tickets, registration_date, event_id` | ✅ |
 | Primary and foreign keys | `PRIMARY KEY`, `fk_registration_event … ON DELETE RESTRICT` | ✅ |
-| One user may register many times / only once per event | `UNIQUE (event_id, email)` + endpoint returns 409 | ✅ |
-| ≥ 10 registrations of sample data | 16 rows in `database/charityevents-db.sql` | ✅ |
-| `event_db.js` updated | connection pool + transaction helper | ✅ |
+| One user many events / only once per event | `UNIQUE (event_id, email)` + 409 from the endpoint | ✅ |
+| ≥ 10 registrations of sample data | 16 rows | ✅ |
+| `event_db.js` updated | connection pool, utf8mb4, transaction helper | ✅ |
 | One SQL file with schema **and** data | `database/charityevents-db.sql` | ✅ |
 | Latitude / longitude for the weather API | `events.latitude`, `events.longitude` | ✅ |
+| Character set survives an unknown host default | `DEFAULT CHARSET=utf8mb4` on all four tables | ✅ |
 
 ### Part 2 — REST API (10%)
 
 | Requirement | Status |
 |---|---|
 | Single-event endpoint returns the event **plus its registrations** | ✅ `GET /api/events/:id` |
-| …sorted by the date the tickets were bought, newest first | ✅ `ORDER BY registration_date DESC, registration_id DESC` (verified live) |
+| …sorted by purchase date, newest first | ✅ `ORDER BY registration_date DESC, registration_id DESC` |
 | Create / update / delete endpoints | ✅ `POST`, `PUT`, `DELETE /api/events/:id` |
-| Delete blocked when registrations exist, with a clear error | ✅ 409 + message (verified live) |
-| Intuitive, logical URLs; resources not verbs | ✅ query-string filters, not `/by-date` |
-| Security: parameterised SQL, validation, no leakage | ✅ all values bound with `?`; errors logged server-side |
-| Postman evidence | ✅ 21 requests + environment in `docs/postman/` |
+| Delete blocked when registrations exist, with a clear error | ✅ 409 + a message naming the count |
+| RESTful URLs, resources not verbs | ✅ query-string filters |
+| Security: parameterised SQL, validation, bounded input | ✅ every value bound with `?`; 100 kB body cap; CORS allow-list |
+| Postman evidence | ✅ `docs/postman/` |
 
 ### Part 3 — Client-side site (30%)
 
 | Requirement | Status |
 |---|---|
 | Event detail shows all registrations for that event | ✅ "Who is going" |
-| Register button links to the new registration page | ✅ `routerLink="/register"` + `?eventId=` |
+| Register button links to the registration page | ✅ `routerLink="/register"` + `?eventId=` |
 | Registration page: form, event info from the API, submit button | ✅ `pages/register/` |
-| Client-side validation with an alert | ✅ reactive form validators |
-| Calls the API and shows a confirmation | ✅ |
-| Pages call APIs (nothing is hard-coded) | ✅ |
-| **Bonus:** built with Angular | ✅ Angular 22 + TypeScript |
-| **Bonus:** external weather API | ✅ Open-Meteo via `/api/weather` |
+| Validation with a client-side message | ✅ per-field messages, not one generic alert |
+| Confirmation after a successful submit | ✅ |
+| Every page calls the API; nothing hard-coded | ✅ |
+| **Bonus:** Angular | ✅ Angular 22.2 + TypeScript 6 |
+| **Bonus:** external weather API | ✅ Open-Meteo via `/api/weather/:eventId` |
 
 ### Part 4 — Admin-side site (30%)
 
 | Requirement | Status |
 |---|---|
-| Lists **all** events regardless of status (Active / Past / Suspended) | ✅ `?status=all&period=all` + status filter with live counts |
-| New event form with validation and a Save button | ✅ `pages/event-new/` |
-| Edit form that loads an event **and its registrations** | ✅ `pages/event-edit/` |
-| Delete button with clear feedback when blocked | ✅ 409 message shown on screen |
-| Menu present on every page | ✅ `adminside/src/app/app.html` |
-| **Bonus:** built with Angular | ✅ Angular 22 + TypeScript |
+| Lists **all** events regardless of status | ✅ `?status=all&period=all` + status filter |
+| New event form with validation and Save | ✅ `pages/event-new/` |
+| Edit form that loads an event **and its bookings** | ✅ `pages/event-edit/` |
+| Delete with clear feedback when blocked | ✅ 409 message on screen |
+| Menu present on every page | ✅ in the shell component |
+| **Bonus:** Angular | ✅ Angular 22.2 + TypeScript 6 |
 
 ### Concept understanding (10%) and Teamwork (15%)
 
 | Evidence | Status |
 |---|---|
-| Code comments that explain *why* | ✅ across `api/**` and both Angular apps |
-| Work progress in GitHub | ⚠️ 24 commits, 12 by each member — **but all pushed on 16 October**. Chengyu must add his own commits on two separate days, otherwise "regularly committing" is not demonstrated |
-| Video | ⬜ each of you, ≤ 15 min |
-| Peer evaluation | ⬜ each of you, emailed to the tutor |
+| Code comments that explain *why* | ✅ throughout `api/**` and both apps |
+| Work progress in GitHub | ✅ 31 commits, 13 by Chengyu, across 16–18 October |
+| Report | ✅ `docs/report/` — 15 pages, requirement-to-evidence appendix |
+| Video | ⬜ each of you |
+| Peer evaluation | ⬜ each of you |
+
+One cosmetic thing in the history: your own commits appear under two display
+names, `BaoJie001` and `Jie Bao`. Both carry `1822675871@qq.com`, so the log
+shows two authors, not three. Leave it — rewriting history now would desync
+Chengyu's clone for no marks.
 
 ---
 
-## 5. What is still missing for a High Distinction
+## 6. Where the marks can still move
 
-HD = "effectively and efficiently **without errors**", plus the bonuses. The
-code side is there. The two gaps that can still cost marks are both
-non-technical:
+The code is at HD level: both sites are Angular, the weather API is in, the
+409 rules are enforced in two layers, and both deployments answer
+`database: connected`. The remaining 25% (concept understanding + teamwork) is
+judged from the video, the peer evaluation and the commit history:
 
-1. **Deployed and publicly working.** Both criteria say *design, develop, and
-   deploy*. An undeployed site cannot score full marks on 30% + 30%. Deploy
-   early, then test every page on the public URL, not just on localhost.
-2. **Chengyu's own commits.** Right now the history shows 12:12, but all of it
-   was pushed from one machine. His own clone-and-commit is what turns the
-   15% teamwork criterion into real evidence.
-
-Optional extras that push further: HTTPS on the cPanel URL, a short
-`README` section on the API contract, and mentioning the 409 rules in the
-video (they are the clearest sign of "exceptional understanding").
+1. **The video is the single biggest risk.** A rushed screen recording that
+   reads code aloud reads as "minimal understanding". Explain *why* — why the
+   UNIQUE key, why 409 and not 400, why the weather call goes through our API.
+2. **The peer evaluation is where a team loses 15% quietly.** Send it before
+   the deadline, to the tutor, with the exact subject line.
+3. **Say in the video that you know the trade-offs** — no authentication, no
+   USER table, no pagination yet. Naming what you left out and why is what
+   "exceptional understanding" sounds like.
