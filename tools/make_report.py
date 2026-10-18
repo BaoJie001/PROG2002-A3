@@ -729,10 +729,14 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
 
     # ---------------------------------------------------------------- 12
     r.h1("12. My Individual Contribution")
-    r.p(own_work)
+    for item in own_work:
+        if isinstance(item, tuple):
+            r.lead(item[0], item[1])
+        else:
+            r.p(item)
     r.p(
-        "The fifteen-minute video follows the same division: I demonstrate the files I own, and I "
-        "explain the reasoning behind the decisions in them rather than reading the code aloud."
+        "The video follows the same division: I demonstrate the files I own and explain the reasoning "
+        "behind the decisions in them, rather than reading the code aloud."
     )
 
     # ---------------------------------------------------------------- 13
@@ -817,24 +821,99 @@ def build(student_id, last_name, first_name, own_work, filename, base_url):
     return r.save(filename)
 
 
-JIE_WORK = (
-    "I built the database change, the event CRUD endpoints, the shared validation module, the "
-    "Angular data layer with the home and search pages, the staff event list and its delete flow, "
-    "and the deployment guide, and I deployed the whole stack to my own cPanel account. The piece "
-    "of code I am most satisfied with is the delete rule, because it is enforced twice - once in "
-    "the endpoint, so the staff member gets a sentence they can act on, and once in the foreign "
-    "key, so the rule cannot be bypassed by anything that talks to the database directly."
-)
+JIE_WORK = [
+    "My half of the project was the database, the event endpoints that both websites write through, "
+    "the public site's data layer with the Home and Search pages, the staff event list, and the "
+    "deployment - which I then did a second time, on my own account, before writing it down.",
 
-CHENGYU_WORK = (
-    "I built the registration endpoint with its three conflict cases, the Open-Meteo proxy and the "
-    "weather panel, the categories and organisations endpoints, the event details page with the "
-    "registration list, the registration form with its validation and confirmation, and both admin "
-    "screens for creating and editing an event, and I deployed the whole stack to my own cPanel "
-    "account. The piece of code I am most satisfied with is the weather proxy, because it keeps a "
-    "third-party service out of the browser entirely: the page asks our API, our API asks "
-    "Open-Meteo, and if Open-Meteo is down the page says so instead of showing an empty box."
-)
+    ("Database.",
+     "I designed and added the registrations table. The shape of it came from two rules in the brief "
+     "that pull against each other: there is no user table, and one person may register for many "
+     "events but only once per event. With no account to identify a person, their email address is "
+     "the only identity available, so 'once per event' is really a rule about the pair (event_id, "
+     "email) - and that pair became a UNIQUE constraint rather than a check in JavaScript. I also "
+     "added latitude and longitude to events for the weather work, and wrote the sixteen sample "
+     "bookings so that the event page and the staff edit screen both have realistic data to show."),
+
+    ("Event endpoints.",
+     "I wrote GET, POST, PUT and DELETE for /api/events, and the part I spent longest on was DELETE. "
+     "The rule is that an event with bookings cannot be deleted, and I chose to enforce it twice: the "
+     "endpoint counts the bookings first, so the staff member gets a sentence they can act on - 'this "
+     "event has four bookings' - and the foreign key is ON DELETE RESTRICT, so the rule still holds if "
+     "something later bypasses my endpoint. Writing it that way was the moment the difference between "
+     "validating input and protecting data actually became concrete for me."),
+
+    ("Public site and staff list.",
+     "On the public site I built the Angular shell, the typed models, the service layer that every "
+     "page calls, and the Home and Search pages, including the query-string filters that stay in the "
+     "URL so a search result can be shared. On the staff site I built the event list and its delete "
+     "flow, including the branch that reports a blocked delete instead of a generic failure."),
+
+    ("Deployment.",
+     "I deployed the whole stack to my own cPanel account and then wrote the procedure down, which is "
+     "how the second deployment - Chengyu's - took an afternoon instead of the day mine took. Three "
+     "things went wrong that I did not expect: the emoji icons arrived as question marks, the staff "
+     "site served a blank page, and the API connected to the database as the wrong user because the "
+     "environment variables had never been saved. Section 10 covers the diagnoses; the short version "
+     "is that all three happened one layer below where I was looking."),
+
+    ("What I would do differently.",
+     "I would put the character set in the CREATE TABLE statement on the first day rather than "
+     "trusting the database default, and I would add a health endpoint that reports which database it "
+     "is connected to before writing any other route, because that one line turned the third problem "
+     "from a mystery into a five-minute fix. I can explain and demonstrate every file listed above."),
+]
+
+CHENGYU_WORK = [
+    "My half of the project was everything that happens after somebody decides to attend: the "
+    "registration endpoint, the registration form and the event page that shows who is coming, the "
+    "weather feature, and both staff screens for creating and editing an event. I also deployed the "
+    "whole stack to my own cPanel account.",
+
+    ("The registration endpoint.",
+     "I wrote POST /api/registrations, which looks simple and is not. A booking can be refused for "
+     "three quite different reasons - the event has been suspended, the event has already taken "
+     "place, or this email address has already booked this event - and all three are answered with "
+     "409 Conflict, because none of them is a malformed request; the request is fine, the world is "
+     "not in a state where it can be carried out. The same method also validates eight fields before "
+     "it touches the database, and it still catches MySQL error 1062 at the end: two people "
+     "submitting the same address in the same instant can both pass my duplicate check, so the unique "
+     "key gets the last word and the endpoint turns that error into the same friendly 409."),
+
+    ("Event page and registration form.",
+     "On the event details page I built the 'Who is going' panel, which lists every booking newest "
+     "first, and the Register button, which passes the event through the URL rather than through a "
+     "JavaScript variable - so the page survives a refresh, a bookmark or a shared link. The "
+     "registration form is a Reactive Form with a message under each field instead of one generic "
+     "alert, and a live ticket total so the visitor sees the cost before they commit. Two things I "
+     "fixed after testing: the booking date can no longer be later than the event itself, and the "
+     "ceiling is re-checked in the submit handler, because a max attribute on an input is a hint to "
+     "the browser and not a guarantee to the server."),
+
+    ("Weather and the smaller endpoints.",
+     "I built the Open-Meteo integration as a proxy on our own server: the browser asks our API, our "
+     "API asks Open-Meteo, maps the numeric weather codes to plain descriptions, and returns only the "
+     "few values the panel needs. That keeps the third party out of the browser, keeps the code-to-"
+     "words mapping testable, and means that when Open-Meteo is unreachable the page can say there is "
+     "no forecast instead of showing an empty box. I also wrote the categories and organisations "
+     "endpoints."),
+
+    ("Staff site.",
+     "I built the new-event and edit-event screens on one shared form component, so the two cannot "
+     "drift apart. The edit screen loads the event together with its bookings and shows a total ticket "
+     "count, so staff can see how full an event is without leaving the page. I also added the status "
+     "filter to the list, with counts taken from the rows actually on screen, so a filter button can "
+     "never claim a number the table does not show."),
+
+    ("Deployment and testing.",
+     "I deployed everything to my own cPanel account following the guide, which is where I hit the "
+     "problem described in Section 10: the API reported 'Access denied for root@localhost' because "
+     "the environment variables had not been saved, and we moved to a .env file to make the "
+     "configuration explicit. That error message was what taught me to read a connection failure "
+     "carefully - it named the user and the host, and the answer was in those two words. I also wrote "
+     "the Postman collection with assertions, including the cases that must fail, so the whole API "
+     "can be re-checked in one click."),
+]
 
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "."
