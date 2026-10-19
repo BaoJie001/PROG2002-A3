@@ -108,9 +108,16 @@
 
 | 顺序 | 请求 | 你看到 | 你说 |
 |---|---|---|---|
-| ① | `Registrations - duplicate booking (409)` | 409 + "This email address is already registered" | 重复报名 |
-| ② | `Registrations - booking a finished event (409)` | 409 + "already finished" | 已结束 |
-| ③ | `Registrations - booking a suspended event (409)` | 409 + "closed" | 已暂停 |
+| ① | `Registrations - new booking (201)` | 201 + "You are registered for..." | **先成功一次** |
+| ② | `Registrations - duplicate booking (409)` | 409 + "already registered" | **再点同一个** → 重复报名 |
+| ③ | `Registrations - booking a finished event (409)` | 409 + "already finished" | 已结束 |
+| ④ | `Registrations - booking a suspended event (409)` | 409 + "closed" | 已暂停 |
+
+> ⚠️ **① 必须在 ② 之前**：两条用的是同一个邮箱（postman.tester@example.com，
+> 活动 6）。先发"新建"它才算第一次报名；再发"重复"才撞得上 UNIQUE 约束。
+> 顺序反了，"重复"那条会返回 201，演示就露馅了。
+> 重录一遍时如果 ① 变成了 409，把两个请求体里的邮箱末尾加个 2
+> （postman.tester2@example.com），两边改成一样的即可。
 
 **念**（边点边说）：
 
