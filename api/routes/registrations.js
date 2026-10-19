@@ -16,8 +16,10 @@
  *   2. You cannot register for an event that is suspended or already over.
  *      A hidden or finished event has no business taking bookings.
  *   3. The booking cannot be dated after the event was held.
- *      The form sets a max attribute on the date input, but that is only a
- *      hint to the browser, so the same ceiling is enforced here.
+ *      No check is needed here: a booking cannot be dated in the future, and
+ *      a finished event is refused, so the booking date is always on or
+ *      before the event date. The form's max attribute is a kindness to the
+ *      visitor, not the rule that protects the data.
  * ---------------------------------------------------------------------------
  */
 
@@ -204,23 +206,22 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // --- is the booking dated after the event itself? ---------------------
-    // The form sets a max attribute on the date input, but that is a hint to
-    // the browser: it can be edited out of the DOM, and it does not exist at
-    // all for a request sent straight to the API. So the ceiling is enforced
-    // here as well, where it cannot be bypassed.
-    if (registrationDate > eventDate) {
-      return res.status(400).json({
-        error: true,
-        message: 'The booking date cannot be later than the date of the event itself.',
-        fields: [
-          {
-            field: 'registration_date',
-            message: `Pick a date on or before ${eventDate}.`,
-          },
-        ],
-      });
-    }
+    // --- can the booking be dated after the event? ------------------------
+    // No, and there is deliberately no check for it here, because the two
+    // rules above already make it impossible:
+    //   * a booking cannot be dated in the future (validated above), so
+    //     registrationDate <= today;
+    //   * an event that has already happened is refused above, so
+    //     eventDate >= today.
+    // Hence registrationDate <= today <= eventDate, and the case cannot
+    // arise. I had a check for it once and removed it: it could never fire,
+    // and a rule that cannot fire is worse than no rule, because it looks
+    // like protection.
+    //
+    // The form's max attribute is still worth having — it stops the visitor
+    // picking a wrong date in the first place — but it is a hint to the
+    // browser, not a rule. What actually protects the data are the two
+    // checks above.
 
     // --- has this person already booked it? -------------------------------
     const duplicate = await query(
