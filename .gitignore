@@ -32,3 +32,7 @@ tools/Storyboard-template.docx
 # Word lock files
 ~$*
 submission/~$*
+
+# Peer evaluations are confidential: each student fills in and sends their own,
+# so the drafts must not be visible to the other member in the repository.
+private/
