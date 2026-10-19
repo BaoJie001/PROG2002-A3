@@ -160,6 +160,18 @@ Verified after deployment: `/api/health` reports `database: connected` with
 13 events and 16 registrations; deep links such as `/event/5` and
 `/admin/events/5/edit` return `index.html` (the `.htaccess` rewrite works).
 
+Re-checked on 19 October, the day before submission, because a deployment can
+silently stop: all three URLs still answer 200 and `/api/health` reports
+
+```json
+{"api":"running","database":"connected","dbName":"jbao14_charityevents",
+ "counts":{"events":13,"registrations":16,"categories":6}}
+```
+
+The counts being unchanged is the point — nothing has drifted since I
+deployed it, and the health endpoint is what lets me say that in one request
+rather than by clicking around.
+
 ---
 
 ## 7. My deployment — Chengyu Gao (cgao15)
