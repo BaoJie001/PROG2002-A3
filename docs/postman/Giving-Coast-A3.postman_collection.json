@@ -685,6 +685,98 @@
       ]
     },
     {
+      "name": "Registrations - booking dated in the future (400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": 1,\n  \"first_name\": \"Future\",\n  \"last_name\": \"Booking\",\n  \"email\": \"future.booking@example.com\",\n  \"phone\": \"0400000000\",\n  \"tickets\": 1,\n  \"registration_date\": \"2030-06-01\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('the date field is named, so the form can point at it', () => {",
+              "    const fields = pm.response.json().fields || [];",
+              "    pm.expect(fields.some(f => f.field === 'registration_date')).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations - booking a suspended event (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event_id\": 13,\n  \"first_name\": \"Suspended\",\n  \"last_name\": \"Booking\",\n  \"email\": \"suspended.booking@example.com\",\n  \"phone\": \"0400000000\",\n  \"tickets\": 1,\n  \"registration_date\": \"{{today}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/registrations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "registrations"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// 13 is the suspended event in the sample data; the date has to be",
+              "// today or earlier, so it is computed rather than hard-coded.",
+              "pm.variables.set('today', new Date().toISOString().slice(0, 10));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+              "pm.test('the reason says registrations are closed', () => {",
+              "    pm.expect(pm.response.json().message).to.match(/closed/i);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "Registrations - invalid payload (400)",
       "request": {
         "method": "POST",
