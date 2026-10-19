@@ -41,16 +41,27 @@ turns it into a 409 rather than a 500.
 
 ---
 
-## 2. The booking date ceiling
+## 2. The booking date ceiling — and the check I added then removed
 
-The register form puts a `max` attribute on the date input. While testing I
-removed that attribute in the browser's inspector and submitted a booking
-dated after the event, and it was accepted — which is the whole point of that
-attribute: it is a hint to the browser, not a guarantee to the server.
+The register form puts a `max` attribute on the date input. I removed that
+attribute in the browser's inspector to see what the server would do, and
+went on to add a server-side check for "booking dated after the event".
 
-So the server now checks the ceiling as well and answers **400** with the
-offending field, because this one genuinely is a malformed request. The rule
-exists in two places on purpose, and only one of them can be trusted.
+**Then I removed it again, because it could never fire.** Two rules already
+make that case impossible:
+
+* a booking cannot be dated in the future, so `registrationDate <= today`;
+* an event that has already happened is refused, so `eventDate >= today`.
+
+Therefore `registrationDate <= today <= eventDate` always holds. The branch
+was dead code, and dead code that looks like a validation rule is worse than
+no rule at all: it reads as protection while proving nothing. What is there
+now is a comment that spells out the two checks that do the real work.
+
+What I actually learned from the exercise is narrower than the lesson I
+first wrote down: the `max` attribute is a kindness to the visitor, not a
+guarantee to the server — but before adding a server-side rule I should check
+whether one is needed, rather than adding one to be safe.
 
 ---
 

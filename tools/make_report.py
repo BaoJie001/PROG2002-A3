@@ -1344,9 +1344,11 @@ CHENGYU_WORK = [
      "JavaScript variable - so the page survives a refresh, a bookmark or a shared link. The "
      "registration form is a Reactive Form with a message under each field instead of one generic "
      "alert, and a live ticket total so the visitor sees the cost before they commit. Two things I "
-     "fixed after testing: the booking date can no longer be later than the event itself, and the "
-     "ceiling is re-checked in the submit handler, because a max attribute on an input is a hint to "
-     "the browser and not a guarantee to the server."),
+     "fixed after testing: the date input carries a ceiling so the visitor cannot pick a date after "
+     "the event, and I checked what happens when that attribute is removed - the answer is that "
+     "nothing bad happens, because a booking cannot be dated in the future and a finished event is "
+     "refused anyway. That is the lesson I keep: a hint to the browser is not a rule, but a rule you "
+     "cannot trigger is not protection either."),
 
     ("Weather and the smaller endpoints.",
      "I built the Open-Meteo integration as a proxy on our own server: the browser asks our API, our "
@@ -1374,11 +1376,12 @@ CHENGYU_WORK = [
 
     ("What I would do differently.",
      "I spent too long believing that a max attribute on a browser input meant the server would refuse "
-     "the wrong value. The booking-date ceiling is the change that proves it: I removed the attribute "
-     "in the browser's inspector, submitted a booking dated after the event, and it was accepted. The "
-     "server checks the ceiling too now, and I would write that check first next time and treat the "
-     "form attribute as a kindness to the visitor rather than as a rule. I would also have read the "
-     "'Access denied' message "
+     "the wrong value, so the booking-date ceiling is the example I keep coming back to. I added a "
+     "server-side check for it and then removed it again: a booking cannot be dated in the future, and "
+     "a finished event is refused outright, so a date after the event was already impossible and the "
+     "branch could never fire. The rule is now a comment explaining exactly that, which I think is the "
+     "honest answer - the ceiling is enforced by two checks that do fire, not by one that cannot. I "
+     "would also have read the 'Access denied' message "
      "closely the first time - it named the user and the host, and I had been looking at the "
      "connection string. What I am most pleased with is that all three refusal reasons for a booking "
      "return the same status with a different sentence, so the form can print the reason rather than a "
