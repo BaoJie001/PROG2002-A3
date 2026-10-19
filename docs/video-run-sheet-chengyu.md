@@ -116,8 +116,11 @@
 > ⚠️ **① 必须在 ② 之前**：两条用的是同一个邮箱（postman.tester@example.com，
 > 活动 6）。先发"新建"它才算第一次报名；再发"重复"才撞得上 UNIQUE 约束。
 > 顺序反了，"重复"那条会返回 201，演示就露馅了。
-> 重录一遍时如果 ① 变成了 409，把两个请求体里的邮箱末尾加个 2
-> （postman.tester2@example.com），两边改成一样的即可。
+>
+> **这条 201 只能成功一次**（就是这个邮箱在数据库里的第一次）。所以：
+>
+> - 结尾要跑全集展示"全绿" → **开录前必须清库**（或把两条的邮箱都加个 2）
+> - 不想清库 → **干脆不演示 ①**，直接从 ② 开始，三条 409 照样成立
 
 **念**（边点边说）：
 
@@ -144,6 +147,37 @@
 > the same address in the same instant and both pass that check. So the
 > endpoint also catches MySQL error 1062 and turns it into the same 409. The
 > unique key gets the last word."
+
+## 2.5 展示代码（可选，1 分钟 —— 建议加，证明是自己写的）
+
+**画面**：打开 VS Code（或记事本），打开
+`D:\PROG2002-A3\api\routes\registrations.js`，**跳到第 194 行附近**，
+把三处 409 滚进画面。
+
+要指的三段：
+
+| 行 | 代码 | 你说 |
+|---|---|---|
+| 第 194 行 | `if (event.status !== 'active')` | "这条拦暂停的活动" |
+| 第 201 行 | `if (eventDate < todayString())` | "这条拦已经结束的" |
+| 第 231 行 | `if (duplicate.length > 0)` | "这条查同一个人报没报过" |
+
+**念**（照着屏幕指，别念完整代码）：
+
+> "Let me show you the code behind that, because the same status code is the
+> interesting part. Three checks, three different reasons — suspended,
+> finished, already booked — and all three return 409. I could have used 400
+> for all of them and nobody would have noticed, but then the front end could
+> not tell the difference between 'you filled the form in wrong' and 'this
+> event is closed', and those need completely different messages.
+>
+> And below them, at the bottom of the route, there is a catch for MySQL error
+> 1062. The select above is a race: two people could submit at the same instant
+> and both pass it. The unique key in the database is what actually decides,
+> and I turn its error into the same friendly 409."
+
+> ⚠️ **只讲这几处，不要逐行念。** 老师要听的是「为什么这么写」，
+> 不是听你朗读。指到就走，控制在 1 分钟内。
 
 ## 2.4 天气为什么走服务端（3:00 – 3:30）
 
