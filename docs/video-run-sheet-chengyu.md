@@ -331,7 +331,7 @@ Who is going
 
 | 状况 | 怎么办 |
 |---|---|
-| 页面空白 / 打不开 | 三个黑窗口被关了。双击 `start-all.bat` 重开，等 25 秒 |
+| 页面空白 / 打不开 | 某个后台服务停了。双击 `start-all.bat` 重开，等 25 秒 |
 | API 报 `database: error` | MySQL 没起来。重跑 `start-all.bat` |
 | Postman 全红 | 环境选错了。右上角确认是 **Giving Coast A3**，`base_url` 是 `http://localhost:3000` |
 | 天气面板不显示 | Open-Meteo 偶尔超时。直接说 "the panel degrades by design" **反而是加分**，把它讲成降级演示 |
