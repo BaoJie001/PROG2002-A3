@@ -41,6 +41,23 @@ const UPSTREAM_TIMEOUT_MS = 6000;
 const cache = new Map();
 
 /**
+ * The most forecasts held at once. Every distinct event viewed inside a ten
+ * minute window adds an entry, and this process runs for weeks at a time on a
+ * shared cPanel host where memory is not ours to waste. When the map is full
+ * the oldest entry is dropped, which is the right one to lose: it is the
+ * least recently touched, and it is about to expire anyway.
+ */
+const CACHE_MAX_ENTRIES = 200;
+
+function cacheSet(id, entry) {
+  if (cache.size >= CACHE_MAX_ENTRIES) {
+    const oldest = cache.keys().next().value; // Map keeps insertion order
+    cache.delete(oldest);
+  }
+  cache.set(id, entry);
+}
+
+/**
  * WMO weather interpretation codes -> words a visitor understands.
  * (The same table the brief supplies; 96/99 are added for hail.)
  */
@@ -151,7 +168,7 @@ router.get('/:eventId', async (req, res) => {
     // No coordinates -> we simply cannot ask. Not an error, just unavailable.
     if (event.latitude === null || event.longitude === null) {
       const payload = { ...base, available: false, reason: 'missing-coordinates' };
-      cache.set(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
+      cacheSet(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
       return res.status(200).json(payload);
     }
 
@@ -162,7 +179,7 @@ router.get('/:eventId', async (req, res) => {
         available: false,
         reason: daysAhead < 0 ? 'event-in-the-past' : 'beyond-forecast-range',
       };
-      cache.set(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
+      cacheSet(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
       return res.status(200).json(payload);
     }
 
@@ -188,7 +205,7 @@ router.get('/:eventId', async (req, res) => {
 
     if (index === -1) {
       const payload = { ...base, available: false, reason: 'no-forecast-for-date' };
-      cache.set(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
+      cacheSet(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
       return res.status(200).json(payload);
     }
 
@@ -207,7 +224,7 @@ router.get('/:eventId', async (req, res) => {
       source: 'Open-Meteo (api.open-meteo.com)',
     };
 
-    cache.set(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
+    cacheSet(id, { expiresAt: Date.now() + CACHE_TTL_MS, payload });
     res.status(200).json(payload);
   } catch (err) {
     console.error(`GET /api/weather/${eventId} failed:`, err.message);
