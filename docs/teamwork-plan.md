@@ -5,9 +5,9 @@ Giving Coast · PROG2002 · Team of two
 | | Member A | Member B |
 |---|---|---|
 | Name | Jie Bao (包杰) | Chengyu Gao |
-| Student ID | _(fill in)_ | 24832054 |
+| Student ID | 24831941 | 24832054 |
 | GitHub | BaoJie001 | Carlos-001-max |
-| Cohort | _(fill in)_ | 10 |
+| Cohort | 10 | 10 |
 | Team ID | Team 30 | Team 30 |
 
 ---
