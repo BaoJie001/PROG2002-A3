@@ -1,7 +1,11 @@
 # Running the Postman collection
 
-21 requests with assertions, covering every endpoint plus the error paths the
+23 requests with assertions, covering every endpoint plus the error paths the
 brief asks us to have thought about (400, 404, 409).
+
+> If you have never used Postman before, `docs/postman-guide-chengyu.md`
+> walks through it click by click — import, environment, which five requests
+> matter for the video, and what to do when everything is red.
 
 ## 1. Import
 
@@ -30,7 +34,7 @@ Because the whole collection reads `{{base_url}}`, the same file tests both.
 ## 3. Run it
 
 Click **…** on the collection → **Run collection** → **Run Giving Coast A3**.
-All 21 should be green.
+All 23 should be green.
 
 ## 4. The three refusals worth looking at
 
@@ -42,6 +46,8 @@ it around:
 | `Admin - delete blocked because people booked (409)` | **409**, and the body says how many registrations are attached |
 | `Registrations - duplicate booking (409)` | **409** — the same email books the same event twice |
 | `Registrations - booking a finished event (409)` | **409** — the event date has passed |
+| `Registrations - booking a suspended event (409)` | **409** — the event is not active |
+| `Registrations - booking dated in the future (400)` | **400**, naming `registration_date` — a malformed request, unlike the three above |
 | `Events - invalid filter (400)` | **400** with a per-field message |
 | `Events - unknown id (404)` | **404** |
 
