@@ -597,9 +597,16 @@
             "exec": [
               "pm.test('created', () => pm.expect([200, 201]).to.include(pm.response.code));",
               "const body = pm.response.json();",
+              "// The endpoint answers with { message, registration }, so the saved booking",
+              "// is one level down - reading body.email here is undefined.",
               "pm.test('the booking is echoed back', () => {",
-              "    pm.expect(body.email).to.eql('postman.tester@example.com');",
-              "    pm.expect(body.tickets).to.eql(2);",
+              "    const saved = body.registration;",
+              "    pm.expect(saved.email).to.eql('postman.tester@example.com');",
+              "    pm.expect(saved.tickets).to.eql(2);",
+              "    pm.expect(saved.event_id).to.eql(6);",
+              "});",
+              "pm.test('a confirmation comes back with it', () => {",
+              "    pm.expect(body.message).to.be.a('string');",
               "});"
             ]
           }
