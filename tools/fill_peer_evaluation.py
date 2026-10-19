@@ -55,55 +55,58 @@ JIE_OWN = (
 # --- the three answers, written twice, once from each point of view ---------
 DYNAMICS = {
     ME: [
-        "We split the work by layer rather than by page, which was the right call: he "
-        "owned the database and the event endpoints, I owned registration, the weather "
-        "feature and the staff forms. Because the API contract was agreed first - one "
-        "endpoint per resource, JSON in and out, and a defined shape for "
-        "/api/events/:id - we could build our halves at the same time without waiting "
-        "on each other. The one thing I would change is agreeing the branch and "
-        "commit-message rules at the first meeting rather than after the first merge.",
+        "Really well, and I think the reason is that we split the work by layer instead "
+        "of by page. He took the database and the event endpoints, I took registration, "
+        "the weather feature and the staff forms. Because we agreed the API contract "
+        "first - one endpoint per resource, JSON in and out - neither of us was ever "
+        "sitting around waiting for the other's page to exist. We could both just build. "
+        "If I changed one thing, it would be agreeing the branch and commit-message "
+        "rules at the very first meeting instead of after the first merge.",
 
-        "The most valuable thing he did was write the deployment down while it was still "
-        "fresh. My deployment then took an afternoon instead of the day his took, and "
-        "the one failure I hit - \"Access denied for user root@localhost\" - was already "
-        "described in his notes, so I knew to look at whether the environment variables "
-        "had actually been applied. Nothing was detrimental. The only friction was that "
-        "we shared a computer for part of the work, which made \"who committed what\" "
-        "harder to answer than it should have been; we fixed it by agreeing that a "
-        "commit is only ever attributed to the person who wrote the code.",
+        "The thing he did that helped me most was writing the deployment down while it "
+        "was still fresh in his head. His deployment took him a day; mine took an "
+        "afternoon, purely because I was following notes he had already made. And the "
+        "one error I hit - \"Access denied for user root@localhost\" - was already "
+        "described in his notes, so I knew straight away to check whether the "
+        "environment variables had actually been applied rather than staring at my "
+        "connection string for an hour. Nothing about working with him was a problem. "
+        "The only awkward bit was that we shared a computer for part of it, which made "
+        "\"who committed what\" messier than it should have been - we settled it by "
+        "agreeing that a commit is only ever under the name of whoever wrote the code.",
 
         "That shared work needs a shared record. Committing in small steps with a message "
-        "that says why, and never attributing someone else's code to yourself, turned "
-        "\"who did what\" from an argument into something we could both point at. Next "
-        "time I would also deploy earlier: leaving it until the end made the last days "
-        "more stressful than they needed to be, because a deployment problem found early "
-        "is a bug, and the same problem found on the last night is a crisis.",
+        "that says why, and never putting someone else's code under your own name, meant "
+        "\"who did what\" was never an argument - we could both just point at the log. "
+        "The other thing I would do differently next time is deploy earlier. We left it "
+        "to the end, and a deployment problem found in week two is a bug, while the same "
+        "problem found on the last night is a crisis.",
     ],
     HIM: [
-        "Effectively, and better than I expected for a team of two. The reason is that "
-        "we divided by layer instead of by page: I took the database and the event "
-        "endpoints, he took registration, the weather feature and the staff forms. "
-        "Neither of us had to wait for the other's page to exist, because the API "
-        "contract was agreed first. What I would do differently is fix the commit "
-        "conventions at the first meeting - for a while we were committing from the same "
-        "machine, which muddied who had done what, and we only sorted it out near the end.",
+        "Honestly, better than I expected for a team of two. Dividing by layer was the "
+        "whole trick: I took the database and the event endpoints, he took registration, "
+        "the weather feature and the staff forms, so neither of us was blocked waiting "
+        "for the other. We met to agree the split and then just got on with our halves. "
+        "What I would do differently is fix the commit conventions at the first meeting - "
+        "for a while we were committing from the same machine, which muddied who had done "
+        "what, and we only sorted that out near the end.",
 
-        "The most valuable habit of his was testing the cases that are supposed to fail. "
-        "A collection that only proves the happy path proves nothing, and his includes "
-        "the 400, 404 and 409 paths, which is how we know the delete rule and the "
-        "registration refusals actually work rather than merely look right in the "
-        "browser. He also checked his own deployment after it was live instead of "
-        "assuming it still worked, which is what caught the environment variable "
-        "problem. Nothing was detrimental; if anything, we both left deployment too "
-        "late, and that was my call as much as his.",
+        "The habit of his I valued most was testing the cases that are supposed to fail. "
+        "It is easy to write a test that proves the happy path and feel done, but his "
+        "collection includes the 400s, the 404 and the 409s - which is how we actually "
+        "know the delete rule and the booking refusals work, rather than just looking "
+        "like they work in a browser. He also went back and checked his own deployment "
+        "after it was live instead of assuming it was still fine, and that is exactly "
+        "what caught the environment variable problem. Nothing about working with him was "
+        "detrimental. If there was a mistake we made, it was leaving deployment late, and "
+        "that was as much my call as his.",
 
-        "Two things. First, a rule enforced twice - once where the user can see it and "
-        "once where nothing can bypass it - is worth the extra code, and that is now how "
-        "I think about validation. Second, the record matters as much as the work: small "
-        "commits with a reason, each attributed to whoever wrote the code, made \"who did "
-        "what\" answerable. Next time I would deploy in the second week rather than the "
-        "last, and agree the commit rules before the first commit rather than after the "
-        "first disagreement.",
+        "Two things I am taking with me. First, a rule enforced twice - once where the "
+        "user can see it and once where nothing can get around it - is worth the extra "
+        "lines of code; that is now how I think about validation. Second, the record "
+        "matters as much as the work: small commits, each with a reason, each under the "
+        "name of whoever wrote it. Next time I would deploy in the second week rather "
+        "than the last, and agree how we commit before the first commit rather than "
+        "after the first disagreement.",
     ],
 }
 
