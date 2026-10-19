@@ -915,9 +915,14 @@
               "    pm.expect(body).to.have.property('available');",
               "});",
               "if (body.available) {",
+              "    // The forecast sits under body.weather, next to the event fields",
               "    pm.test('temperatures are real numbers', () => {",
-              "        pm.expect(body.max_temp).to.be.a('number');",
-              "        pm.expect(body.min_temp).to.be.a('number');",
+              "        pm.expect(body.weather.temperature_max).to.be.a('number');",
+              "        pm.expect(body.weather.temperature_min).to.be.a('number');",
+              "    });",
+              "    pm.test('the description is a plain phrase, not a WMO number', () => {",
+              "        pm.expect(body.weather.description).to.be.a('string');",
+              "        pm.expect(Number(body.weather.description)).to.be.NaN;",
               "    });",
               "}"
             ]
